@@ -1,100 +1,158 @@
-"use client"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { toast } from "sonner"
+"use client";
+
+import { useForm } from "react-hook-form";
+import { useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useRSVPStore } from "@/store/useRSVPStore";
 
 const rsvpSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),
   attending: z.enum(["yes", "no"], { error: "Pilih konfirmasi kehadiran" }),
   guestCount: z.number().min(1).max(5).optional(),
-  message: z.string().max(300).optional(),
-})
+  message: z.string().max(300, "Maksimal 300 karakter").optional(),
+});
 
-type RSVPForm = z.infer<typeof rsvpSchema>
+type RSVPFormData = z.infer<typeof rsvpSchema>;
 
-export function RSVPForm({ invitationId }: { invitationId: string }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RSVPForm>({
+interface RSVPFormProps {
+  invitationId: string;
+}
+
+export function RSVPForm({ invitationId }: RSVPFormProps) {
+  const { addRSVP } = useRSVPStore();
+  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<RSVPFormData>({
     resolver: zodResolver(rsvpSchema),
-  })
+    defaultValues: {
+      attending: "yes",
+      guestCount: 1,
+    },
+  });
 
-  const onSubmit = async (data: RSVPForm) => {
-    try {
-      await fetch(`/api/rsvp/${invitationId}`, {
-        method: "POST", body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      })
-      toast.success("Konfirmasi kehadiran berhasil dikirim! 🎉")
-    } catch {
-      toast.error("Gagal mengirim, coba lagi.")
-    }
-  }
+  const attending = useWatch({ control, name: "attending" });
+
+  const onSubmit = async (data: RSVPFormData) => {
+    // Simulasi API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const submittedAt = new Date();
+    
+    addRSVP({
+      id: submittedAt.getTime().toString(),
+      invitationId,
+      name: data.name,
+      attending: data.attending,
+      guestCount: data.guestCount || 1,
+      message: data.message || "",
+      createdAt: submittedAt,
+    });
+    
+    toast.success(
+      data.attending === "yes" 
+        ? "Terima kasih! Kami tunggu kehadiran Anda 🎉" 
+        : "Terima kasih atas konfirmasinya"
+    );
+    reset();
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Nama */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-[#4A3728]">
-          Nama
+        <label className="block text-sm font-medium text-brown mb-2">
+          Nama Lengkap <span className="text-gold">*</span>
         </label>
         <input
-          id="name"
           {...register("name")}
-          className="mt-1 w-full rounded-sm border border-[#C9A96E]/30 px-3 py-2 text-sm outline-none focus:border-[#C9A96E]"
+          type="text"
+          className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold bg-white"
+          placeholder="Masukkan nama Anda"
         />
-        {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+        )}
       </div>
 
+      {/* Konfirmasi Kehadiran */}
       <div>
-        <label htmlFor="attending" className="block text-sm font-medium text-[#4A3728]">
-          Kehadiran
+        <label className="block text-sm font-medium text-brown mb-2">
+          Konfirmasi Kehadiran <span className="text-gold">*</span>
         </label>
-        <select
-          id="attending"
-          {...register("attending")}
-          className="mt-1 w-full rounded-sm border border-[#C9A96E]/30 px-3 py-2 text-sm outline-none focus:border-[#C9A96E]"
-        >
-          <option value="">Pilih konfirmasi</option>
-          <option value="yes">Hadir</option>
-          <option value="no">Tidak hadir</option>
-        </select>
-        {errors.attending && <p className="mt-1 text-xs text-red-600">{errors.attending.message}</p>}
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2">
+            <input
+              {...register("attending")}
+              type="radio"
+              value="yes"
+              className="text-gold focus:ring-gold"
+            />
+            <span className="text-sm text-brown">Hadir</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              {...register("attending")}
+              type="radio"
+              value="no"
+              className="text-gold focus:ring-gold"
+            />
+            <span className="text-sm text-brown">Tidak Hadir</span>
+          </label>
+        </div>
+        {errors.attending && (
+          <p className="text-xs text-red-500 mt-1">{errors.attending.message}</p>
+        )}
       </div>
 
-      <div>
-        <label htmlFor="guestCount" className="block text-sm font-medium text-[#4A3728]">
-          Jumlah tamu
-        </label>
-        <input
-          id="guestCount"
-          type="number"
-          min={1}
-          max={5}
-          {...register("guestCount", { valueAsNumber: true })}
-          className="mt-1 w-full rounded-sm border border-[#C9A96E]/30 px-3 py-2 text-sm outline-none focus:border-[#C9A96E]"
-        />
-        {errors.guestCount && <p className="mt-1 text-xs text-red-600">{errors.guestCount.message}</p>}
-      </div>
+      {/* Jumlah Tamu (conditional) */}
+      {attending === "yes" && (
+        <div>
+          <label className="block text-sm font-medium text-brown mb-2">
+            Jumlah Tamu yang Hadir
+          </label>
+          <select
+            {...register("guestCount", { valueAsNumber: true })}
+            className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold bg-white"
+          >
+            {[1, 2, 3, 4, 5].map((num) => (
+              <option key={num} value={num}>
+                {num} orang
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
+      {/* Ucapan/Doa */}
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-[#4A3728]">
-          Pesan
+        <label className="block text-sm font-medium text-brown mb-2">
+          Ucapan & Doa
         </label>
         <textarea
-          id="message"
-          rows={4}
           {...register("message")}
-          className="mt-1 w-full rounded-sm border border-[#C9A96E]/30 px-3 py-2 text-sm outline-none focus:border-[#C9A96E]"
+          rows={4}
+          className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold bg-white resize-none"
+          placeholder="Tuliskan ucapan dan doa untuk pengantin..."
         />
-        {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message.message}</p>}
+        {errors.message && (
+          <p className="text-xs text-red-500 mt-1">{errors.message.message}</p>
+        )}
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-sm bg-[#4A3728] px-5 py-3 text-xs font-medium uppercase tracking-[0.1em] text-[#E8D5B0] transition-all hover:bg-[#9E7A3E] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full py-3 bg-brown text-gold-light rounded-lg hover:bg-gold hover:text-brown transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? "Mengirim..." : "Kirim RSVP"}
+        {isSubmitting ? "Mengirim..." : "Kirim Konfirmasi"}
       </button>
     </form>
-  )
+  );
 }

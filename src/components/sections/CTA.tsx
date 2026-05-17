@@ -16,16 +16,17 @@ export function CTA() {
         <div className="flex gap-4 justify-center flex-wrap">
           <Link
             href="/dashboard"
+            prefetch={false}
             className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#C9A96E] text-[#4A3728] text-xs font-medium tracking-[0.1em] uppercase rounded-sm hover:bg-[#E8D5B0] transition-all"
           >
             Buat Undangan Gratis →
           </Link>
-          <Link
+          <a
             href="#templates"
             className="inline-flex items-center gap-2 px-10 py-3.5 bg-transparent text-[#E8D5B0] text-xs font-medium tracking-[0.1em] uppercase rounded-sm border border-[#C9A96E]/30 hover:border-[#C9A96E] hover:text-[#C9A96E] transition-all"
           >
             Lihat Template
-          </Link>
+          </a>
         </div>
       </div>
     </section>

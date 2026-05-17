@@ -1,8 +1,13 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-//   darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx}"],
+  darkMode: "class",
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/features/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -21,9 +26,8 @@ const config: Config = {
         "dusty-rose": "#D4A5A0",
       },
       fontFamily: {
-        serif: ["Cormorant Garamond", "Georgia", "serif"],
-        sans: ["DM Sans", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       animation: {
         "fade-up": "fadeUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) both",
@@ -41,5 +45,7 @@ const config: Config = {
       },
     },
   },
-}
-export default config
+  plugins: [],
+};
+
+export default config;

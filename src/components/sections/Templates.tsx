@@ -1,65 +1,8 @@
 "use client";
-import { cn } from "@/lib/utils";
 
-const templates = [
-  {
-    id: "elegant",
-    name: "Elegant Wedding",
-    features: "Countdown · Gallery · RSVP · Maps",
-    type: "elegant",
-    popular: true,
-    colors: "from-[#2C2420] to-[#6B4F38]",
-    textColor: "text-[#E8D5B0]",
-    couples: "Rizky & Salsabila",
-    date: "24 · Agustus · 2025",
-  },
-  {
-    id: "minimalist",
-    name: "Minimalist",
-    features: "Clean · Modern · Timeless",
-    type: "minimalist",
-    popular: false,
-    colors: "from-[#F5EFE3] to-[#EDE4D3]",
-    textColor: "text-[#4A3728]",
-    couples: "Bagas & Nadia",
-    date: "12 · Oktober · 2025",
-  },
-  {
-    id: "floral",
-    name: "Floral Romance",
-    features: "Romantis · Bunga · Feminine",
-    type: "floral",
-    popular: false,
-    new: true,
-    colors: "from-[#F8EDE8] to-[#D9A5A0]",
-    textColor: "text-[#4A2820]",
-    couples: "Dimas & Putri",
-    date: "03 · Maret · 2026",
-  },
-  {
-    id: "dark",
-    name: "Dark Luxury",
-    features: "Mewah · Gelap · Prestisius",
-    type: "dark",
-    popular: false,
-    colors: "from-[#1A1410] to-[#2C2018]",
-    textColor: "text-[#C9A96E]",
-    couples: "Ahmad & Raisya",
-    date: "17 · Mei · 2025",
-  },
-  {
-    id: "traditional",
-    name: "Traditional Indonesia",
-    features: "Batik · Jawa · Berkarakter",
-    type: "traditional",
-    popular: false,
-    new: true,
-    colors: "from-[#4A2C10] to-[#C4862E]",
-    textColor: "text-[#FFF5E0]",
-    couples: "Sekar & Arjuna",
-    date: "Sabtu, 7 Juni 2025",
-  },
-];
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { templateCards } from "@/lib/template-data";
 
 export function Templates() {
   return (
@@ -72,21 +15,22 @@ export function Templates() {
           Pilih <em>Estetika</em> yang Mencerminkan Kisah Anda
         </h2>
         <p className="section-desc">
-          5 template premium yang dirancang khusus untuk momen pernikahan Indonesia, 
+          5 template premium yang dirancang khusus untuk momen pernikahan Indonesia,
           dari yang elegan modern hingga tradisional berkarakter.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {templates.map((template) => (
-            <div
+          {templateCards.map((template) => (
+            <Link
               key={template.id}
-              className="group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+              href={`/invitation/${template.id}`}
+              className="group block cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+              aria-label={`Lihat preview template ${template.name}`}
             >
-              {/* Template Preview */}
               <div
                 className={cn(
-                  "aspect-[3/4] relative overflow-hidden rounded-sm",
-                  `bg-gradient-135 ${template.colors}`
+                  "aspect-[3/4] relative overflow-hidden rounded-sm bg-gradient-to-br",
+                  template.colors
                 )}
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
@@ -126,12 +70,11 @@ export function Templates() {
                 </div>
               </div>
 
-              {/* Template Info */}
               <div className="pt-4 px-2">
                 <div className="font-serif text-base font-normal text-[#4A3728] mb-1">{template.name}</div>
                 <div className="text-[0.7rem] text-[#7A5C42] font-light tracking-wide">{template.features}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -37,16 +37,17 @@ export function Hero() {
         <div className="flex gap-4 justify-center flex-wrap animate-fade-up animation-delay-4">
           <Link
             href="/dashboard"
+            prefetch={false}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#4A3728] text-[#E8D5B0] text-xs font-medium tracking-[0.1em] uppercase rounded-sm hover:bg-[#9E7A3E] hover:text-white transition-all"
           >
             Buat Undangan →
           </Link>
-          <Link
+          <a
             href="#templates"
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-transparent text-[#4A3728] text-xs font-medium tracking-[0.1em] uppercase rounded-sm border border-[#4A3728] hover:bg-[#4A3728] hover:text-[#E8D5B0] transition-all"
           >
             Lihat Template
-          </Link>
+          </a>
         </div>
       </div>
 

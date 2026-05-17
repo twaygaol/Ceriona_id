@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+const platformLinks = [
+  { label: "Template", href: "#templates" },
+  { label: "Harga", href: "#pricing" },
+  { label: "Fitur", href: "#features" },
+  { label: "FAQ", href: "#faq" },
+];
+
 export function Footer() {
   return (
     <footer className="bg-[#1A1410] py-12 px-5 md:px-12 text-[#E8D5B0]">
@@ -9,7 +16,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="font-serif text-xl font-semibold text-[#E8D5B0] tracking-wide inline-block mb-4">
-              Kundang<span className="text-[#C9A96E]">an</span>
+              Cerio<span className="text-[#C9A96E]">na</span>
             </Link>
             <p className="text-sm text-[#E8D5B0]/50 leading-relaxed font-light">
               Platform undangan digital premium untuk momen pernikahan paling berkesan dalam hidup Anda.
@@ -20,11 +27,11 @@ export function Footer() {
           <div>
             <h3 className="text-[0.65rem] font-medium tracking-[0.2em] uppercase text-[#C9A96E] mb-4">Platform</h3>
             <ul className="space-y-2">
-              {["Template", "Harga", "Fitur", "Demo"].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
-                    {item}
-                  </Link>
+              {platformLinks.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
+                    {item.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -36,9 +43,9 @@ export function Footer() {
             <ul className="space-y-2">
               {["Tentang Kami", "Blog", "Karir", "Press"].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
+                  <a href="#" className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
                     {item}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -50,9 +57,9 @@ export function Footer() {
             <ul className="space-y-2">
               {["Pusat Bantuan", "Kontak", "WhatsApp", "Status"].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
+                  <a href="#" className="text-sm text-[#E8D5B0]/50 hover:text-[#C9A96E] transition-colors font-light">
                     {item}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -66,9 +73,9 @@ export function Footer() {
           </span>
           <div className="flex gap-6">
             {["Privasi", "Syarat & Ketentuan", "Cookie"].map((item) => (
-              <Link key={item} href="#" className="text-xs text-[#E8D5B0]/30 hover:text-[#C9A96E] transition-colors">
+              <a key={item} href="#" className="text-xs text-[#E8D5B0]/30 hover:text-[#C9A96E] transition-colors">
                 {item}
-              </Link>
+              </a>
             ))}
           </div>
         </div>

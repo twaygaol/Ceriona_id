@@ -109,6 +109,7 @@ export function Pricing() {
 
               <Link
                 href="/dashboard"
+                prefetch={false}
                 className={cn(
                   "block w-full py-3 text-center text-xs font-medium tracking-[0.1em] uppercase rounded-sm transition-all",
                   plan.featured
