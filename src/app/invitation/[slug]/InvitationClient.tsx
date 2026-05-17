@@ -8,6 +8,7 @@ import { RSVPForm } from "@/features/rsvp/RSVPForm";
 import { Countdown } from "@/components/ui/Countdown";
 import { FloatingMusicButton } from "@/components/ui/FloatingMusicButton";
 import { useRSVPStore } from "@/store/useRSVPStore";
+import axios from "axios";
 
 export interface InvitationData {
   id: string;
@@ -21,6 +22,15 @@ export interface InvitationData {
   googleMapsUrl: string;
   story: string;
   gallery: string[];
+  rsvps?: {
+    id: string;
+    invitationId: string;
+    name: string;
+    attending: boolean;
+    guestCount: number;
+    message?: string | null;
+    createdAt: string | Date;
+  }[];
   heroImage?: string;
   musicUrl?: string;
 }
@@ -422,9 +432,17 @@ function RSVPSection({ invitationId }: { invitationId: string }) {
 
 // Guest Wishes Section
 function GuestWishesSection({ invitationId }: { invitationId: string }) {
-  const { getRSVPByInvitation } = useRSVPStore();
+  const { getRSVPByInvitation, setRSVPs } = useRSVPStore();
+
+  useEffect(() => {
+    axios
+      .get(`/api/rsvp/${invitationId}`)
+      .then((response) => setRSVPs(invitationId, response.data))
+      .catch(() => undefined);
+  }, [invitationId, setRSVPs]);
+
   const rsvps = getRSVPByInvitation(invitationId);
-  const wishes = rsvps.filter(r => r.attending === "yes" && r.message);
+  const wishes = rsvps.filter((r) => r.attending && r.message);
 
   return (
     <section className="py-20 px-5 bg-white">
@@ -435,7 +453,7 @@ function GuestWishesSection({ invitationId }: { invitationId: string }) {
             <p className="text-center text-brown-light">Belum ada ucapan. Jadilah yang pertama memberikan doa!</p>
           ) : (
             wishes.map((wish, idx) => (
-              <WishCard key={idx} name={wish.name} message={wish.message} />
+              <WishCard key={idx} name={wish.name} message={wish.message ?? ""} />
             ))
           )}
         </div>

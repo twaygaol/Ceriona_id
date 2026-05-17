@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getSession, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
   Mail, 
@@ -14,9 +15,12 @@ import {
   Settings, 
   CreditCard,
   Menu,
-  X
+  X,
+  LogOut,
+  UserCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Session } from "next-auth";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -36,7 +40,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    getSession().then(setSession);
+  }, []);
+
+  const userName = session?.user?.name || session?.user?.email || "User";
+  const userEmail = session?.user?.email;
 
   return (
     <div className="min-h-screen bg-cream">
@@ -62,7 +74,7 @@ export default function DashboardLayout({
           </Link>
         </div>
         
-        <nav className="mt-6">
+        <nav className="mt-6 pb-36">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -82,6 +94,26 @@ export default function DashboardLayout({
             );
           })}
         </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 border-t border-gold/20 bg-white p-4">
+          <div className="mb-3 flex items-center gap-3 rounded-lg bg-cream px-3 py-3">
+            <UserCircle className="h-9 w-9 text-gold" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-brown">{userName}</p>
+              {userEmail && (
+                <p className="truncate text-xs text-brown-light">{userEmail}</p>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gold/20 px-3 py-2 text-sm text-brown-light transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}

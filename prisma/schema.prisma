@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  invitations   Invitation[]
+}
+
+model Invitation {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  brideName       String
+  groomName       String
+  templateId      String
+  eventDate       DateTime
+  eventTime       String
+  eventLocation   String
+  googleMapsUrl   String?
+  story           String?
+  musicUrl        String?
+  isPublished     Boolean   @default(false)
+  viewCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  template        Template  @relation(fields: [templateId], references: [id])
+  
+  gallery         Gallery[]
+  rsvps           RSVP[]
+}
+
+model Gallery {
+  id            String    @id @default(cuid())
+  url           String
+  caption       String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model RSVP {
+  id            String    @id @default(cuid())
+  name          String
+  attending     Boolean
+  guestCount    Int       @default(1)
+  message       String?
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model Template {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  category      String    // "wedding", "birthday", "graduation"
+  thumbnail     String?   // URL thumbnail
+  previewImage  String?   // Preview image URL
+  
+  // Komponen template dalam JSON
+  layout        Json      // Struktur layout page
+  styles        Json?     // Custom CSS/theme config
+  
+  isPremium     Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  isDefault     Boolean   @default(false)
+  usageCount    Int       @default(0)
+  
+  createdBy     String?   // User ID yang membuat (null = system template)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relasi
+  invitations   Invitation[]
+  components    TemplateComponent[]
+}
+
+model TemplateComponent {
+  id            String    @id @default(cuid())
+  templateId    String
+  template      Template  @relation(fields: [templateId], references: [id])
+  
+  type          String    // "hero", "countdown", "story", "gallery", "rsvp", "gift", "footer"
+  order         Int
+  config        Json      // Props untuk component
+  isVisible     Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+}

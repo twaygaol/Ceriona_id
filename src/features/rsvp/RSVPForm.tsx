@@ -1,7 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useWatch } from "react-hook-form";
+import axios from "axios";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ interface RSVPFormProps {
 
 export function RSVPForm({ invitationId }: RSVPFormProps) {
   const { addRSVP } = useRSVPStore();
-  
+
   const {
     register,
     handleSubmit,
@@ -40,31 +40,23 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
   const attending = useWatch({ control, name: "attending" });
 
   const onSubmit = async (data: RSVPFormData) => {
-    // Simulasi API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const submittedAt = new Date();
-    
-    addRSVP({
-      id: submittedAt.getTime().toString(),
-      invitationId,
-      name: data.name,
-      attending: data.attending,
-      guestCount: data.guestCount || 1,
-      message: data.message || "",
-      createdAt: submittedAt,
-    });
-    
-    toast.success(
-      data.attending === "yes" 
-        ? "Terima kasih! Kami tunggu kehadiran Anda 🎉" 
-        : "Terima kasih atas konfirmasinya"
-    );
-    reset();
+    try {
+      const response = await axios.post(`/api/rsvp/${invitationId}`, data);
+      addRSVP(response.data);
+
+      toast.success(
+        data.attending === "yes"
+          ? "Terima kasih! Kami tunggu kehadiran Anda."
+          : "Terima kasih atas konfirmasinya"
+      );
+      reset();
+    } catch {
+      toast.error("Gagal mengirim RSVP");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Nama */}
       <div>
         <label className="block text-sm font-medium text-brown mb-2">
           Nama Lengkap <span className="text-gold">*</span>
@@ -80,7 +72,6 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
         )}
       </div>
 
-      {/* Konfirmasi Kehadiran */}
       <div>
         <label className="block text-sm font-medium text-brown mb-2">
           Konfirmasi Kehadiran <span className="text-gold">*</span>
@@ -110,7 +101,6 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
         )}
       </div>
 
-      {/* Jumlah Tamu (conditional) */}
       {attending === "yes" && (
         <div>
           <label className="block text-sm font-medium text-brown mb-2">
@@ -129,7 +119,6 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
         </div>
       )}
 
-      {/* Ucapan/Doa */}
       <div>
         <label className="block text-sm font-medium text-brown mb-2">
           Ucapan & Doa
@@ -145,7 +134,6 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
         )}
       </div>
 
-      {/* Submit Button */}
       <button
         type="submit"
         disabled={isSubmitting}

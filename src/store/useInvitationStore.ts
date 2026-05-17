@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface Invitation {
   id: string;
@@ -8,60 +7,71 @@ export interface Invitation {
   brideName: string;
   groomName: string;
   templateId: string;
-  eventDate: Date;
+  eventDate: string;
   eventTime: string;
   eventLocation: string;
-  googleMapsUrl: string;
-  story: string;
-  gallery: string[];
+  googleMapsUrl?: string;
+  story?: string;
   musicUrl?: string;
   isPublished: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  viewCount: number;
+  createdAt: string;
+  rsvps?: InvitationRSVP[];
+  gallery?: InvitationGallery[];
+}
+
+export interface InvitationRSVP {
+  id: string;
+  name: string;
+  attending: boolean;
+  guestCount: number;
+  message?: string | null;
+  createdAt: string;
+  invitationId: string;
+}
+
+export interface InvitationGallery {
+  id: string;
+  url: string;
+  caption?: string | null;
+  order: number;
+  createdAt: string;
+  invitationId: string;
 }
 
 interface InvitationStore {
   invitations: Invitation[];
-  activeInvitation: Invitation | null;
-  setActiveInvitation: (invitation: Invitation | null) => void;
+  fetchInvitations: (invitations: Invitation[]) => void;
   addInvitation: (invitation: Invitation) => void;
   updateInvitation: (id: string, data: Partial<Invitation>) => void;
   deleteInvitation: (id: string) => void;
   publishInvitation: (id: string) => void;
 }
 
-export const useInvitationStore = create<InvitationStore>()(
-  persist(
-    (set) => ({
-      invitations: [],
-      activeInvitation: null,
-      
-      setActiveInvitation: (invitation) => set({ activeInvitation: invitation }),
-      
-      addInvitation: (invitation) =>
-        set((state) => ({ invitations: [...state.invitations, invitation] })),
-      
-      updateInvitation: (id, data) =>
-        set((state) => ({
-          invitations: state.invitations.map((inv) =>
-            inv.id === id ? { ...inv, ...data, updatedAt: new Date() } : inv
-          ),
-        })),
-      
-      deleteInvitation: (id) =>
-        set((state) => ({
-          invitations: state.invitations.filter((inv) => inv.id !== id),
-        })),
-      
-      publishInvitation: (id) =>
-        set((state) => ({
-          invitations: state.invitations.map((inv) =>
-            inv.id === id ? { ...inv, isPublished: true, updatedAt: new Date() } : inv
-          ),
-        })),
-    }),
-    {
-      name: "kundangan-storage",
-    }
-  )
-);
+export const useInvitationStore = create<InvitationStore>((set) => ({
+  invitations: [],
+  
+  fetchInvitations: (invitations) => set({ invitations }),
+  
+  addInvitation: (invitation) =>
+    set((state) => ({ invitations: [invitation, ...state.invitations] })),
+  
+  updateInvitation: (id, data) =>
+    set((state) => ({
+      invitations: state.invitations.map((inv) =>
+        inv.id === id ? { ...inv, ...data } : inv
+      ),
+    })),
+  
+  deleteInvitation: (id) =>
+    set((state) => ({
+      invitations: state.invitations.filter((inv) => inv.id !== id),
+    })),
+  
+  publishInvitation: (id) =>
+    set((state) => ({
+      invitations: state.invitations.map((inv) =>
+        inv.id === id ? { ...inv, isPublished: !inv.isPublished } : inv
+      ),
+    })),
+}));

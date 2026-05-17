@@ -1,36 +1,47 @@
+import { prisma } from "@/lib/prisma";
+import { DynamicTemplate } from "@/components/templates/DynamicTemplate";
 import { notFound } from "next/navigation";
-import { templates } from "@/lib/templates";
-import { getTemplateInvitation } from "@/lib/template-data";
-
-// Generate metadata dinamis
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const invitation = getTemplateInvitation(slug);
-
-  if (!invitation) {
-    return {
-      title: "Template tidak ditemukan",
-    };
-  }
-  
-  return {
-    title: `Undangan Pernikahan ${invitation.brideName} & ${invitation.groomName}`,
-    description: "Kami mengundang Anda untuk hadir di pernikahan kami",
-    openGraph: {
-      images: ["/og-invitation.jpg"],
-    },
-  };
-}
 
 export default async function InvitationPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const invitationData = getTemplateInvitation(slug);
+  const invitation = await prisma.invitation.findUnique({
+    where: { slug },
+    include: {
+      gallery: { orderBy: { order: "asc" } },
+      rsvps: true,
+    },
+  });
 
-  if (!invitationData) return notFound();
-  
-  const TemplateComponent = templates[invitationData.templateId as keyof typeof templates];
-  
-  if (!TemplateComponent) return notFound();
-  
-  return <TemplateComponent invitation={invitationData} />;
+  if (!invitation || !invitation.isPublished) {
+    notFound();
+  }
+
+  await prisma.invitation.update({
+    where: { id: invitation.id },
+    data: { viewCount: { increment: 1 } },
+  });
+
+  const invitationData = {
+    id: invitation.id,
+    slug: invitation.slug,
+    brideName: invitation.brideName,
+    groomName: invitation.groomName,
+    templateId: invitation.templateId,
+    eventDate: invitation.eventDate,
+    eventTime: invitation.eventTime,
+    eventLocation: invitation.eventLocation,
+    googleMapsUrl: invitation.googleMapsUrl ?? "",
+    story: invitation.story ?? "",
+    gallery: invitation.gallery.map((image) => image.url),
+    rsvps: invitation.rsvps,
+    heroImage: invitation.gallery[0]?.url,
+    musicUrl: invitation.musicUrl ?? undefined,
+  };
+
+  return (
+    <DynamicTemplate
+      templateId={invitation.templateId}
+      invitation={invitationData}
+    />
+  );
 }
