@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@layer base {
+  :root {
+    --cream: #FAF7F2;
+    --ivory: #F5EFE3;
+    --gold: #C9A96E;
+    --gold-light: #E8D5B0;
+    --gold-dark: #9E7A3E;
+    --brown: #4A3728;
+    --brown-light: #7A5C42;
+    --sage: #8A9E85;
+    --dusty-rose: #D4A5A0;
+    --charcoal: #2C2420;
+  }
+
+  body {
+    background: #FAF7F2;
+    color: #2C2420;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-inline: 3rem;
+    margin-inline: auto;
+    max-width: 900px;
+  }
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1 1 0%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #E8D5B0);
+  }
+  .divider::after {
+    background: linear-gradient(to left, transparent, #E8D5B0);
+  }
+  .divider span {
+    color: #C9A96E;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .section-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: #9E7A3E;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    margin-bottom: 1rem;
+    color: #4A3728;
+    font-family: var(--font-serif), serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .section-title em {
+    color: #9E7A3E;
+    font-style: normal;
+  }
+
+  .section-desc {
+    max-width: 480px;
+    margin: 0 auto 3.5rem;
+    color: #7A5C42;
+    font-size: 0.875rem;
+    font-weight: 300;
+    line-height: 1.625;
+    text-align: center;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up,
+  .animation-fade-up {
+    animation: fadeUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .animation-delay-1 { animation-delay: 0.1s; }
+  .animation-delay-2 { animation-delay: 0.2s; }
+  .animation-delay-3 { animation-delay: 0.3s; }
+  .animation-delay-4 { animation-delay: 0.4s; }
+  .animation-delay-5 { animation-delay: 0.5s; }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(0.8); }
+  }
+}
