@@ -47,6 +47,8 @@ model Invitation {
   
   gallery         Gallery[]
   rsvps           RSVP[]
+  guests          Guest[]
+  virtualGifts    VirtualGift[]
 }
 
 model Gallery {
@@ -65,9 +67,43 @@ model RSVP {
   name          String
   attending     Boolean
   guestCount    Int       @default(1)
+  session       String?   // akad, reception, both
+  menuPreference String?  // regular, vegetarian, kids, other
+  dietaryNote   String?
+  companionNames String?
   message       String?
   createdAt     DateTime  @default(now())
   
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model Guest {
+  id            String    @id @default(cuid())
+  name          String
+  phone         String?
+  email         String?
+  group         String?
+  invitationUrl String?
+  status        String    @default("pending") // pending, sent, opened
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model VirtualGift {
+  id            String    @id @default(cuid())
+  type          String    @default("bank") // bank, ewallet, payment_gateway
+  provider      String
+  accountNumber String?
+  accountName   String?
+  qrImageUrl    String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
   invitationId  String
   invitation    Invitation @relation(fields: [invitationId], references: [id])
 }

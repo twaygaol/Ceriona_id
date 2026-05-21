@@ -30,6 +30,12 @@ export interface TemplateFonts {
 
 export interface TemplateLayout {
   sections?: TemplateSection[];
+  featured?: boolean;
+  visualTheme?: string;
+  backgroundGradient?: {
+    from?: string;
+    to?: string;
+  };
   colors?: TemplateColors;
   fonts?: TemplateFonts;
 }

@@ -78,7 +78,7 @@ export async function PUT(
 
     const existing = await prisma.invitation.findFirst({
       where: { id, userId: user.id },
-      select: { id: true },
+      select: { id: true, templateId: true },
     });
 
     if (!existing) {
@@ -86,6 +86,18 @@ export async function PUT(
     }
 
     const { gallery, googleMapsUrl, musicUrl, ...data } = parsed.data;
+
+    if (data.templateId) {
+      const template = await prisma.template.findFirst({
+        where: { id: data.templateId, isActive: true },
+        select: { id: true },
+      });
+
+      if (!template) {
+        return NextResponse.json({ error: "Template tidak ditemukan" }, { status: 404 });
+      }
+    }
+
     const updateData = {
       ...data,
       ...(googleMapsUrl !== undefined ? { googleMapsUrl: googleMapsUrl || null } : {}),
@@ -97,7 +109,7 @@ export async function PUT(
         await tx.gallery.deleteMany({ where: { invitationId: id } });
       }
 
-      return tx.invitation.update({
+      const invitation = await tx.invitation.update({
         where: { id },
         data: {
           ...updateData,
@@ -110,6 +122,15 @@ export async function PUT(
           rsvps: true,
         },
       });
+
+      if (data.templateId && data.templateId !== existing.templateId) {
+        await tx.template.update({
+          where: { id: data.templateId },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+
+      return invitation;
     });
 
     return NextResponse.json(invitation);

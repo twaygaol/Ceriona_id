@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
@@ -21,12 +22,20 @@ const templateSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   description: z.string().optional().or(z.literal("")),
-  category: z.enum(["wedding", "birthday", "graduation"]),
+  category: z.enum(["wedding", "birthday", "graduation", "custom"]),
   thumbnail: z.string().url().optional().or(z.literal("")),
   previewImage: z.string().url().optional().or(z.literal("")),
   layout: z
     .object({
       sections: z.array(z.enum(templateSections)).min(1),
+      featured: z.boolean().optional(),
+      visualTheme: z.string().optional(),
+      backgroundGradient: z
+        .object({
+          from: colorSchema,
+          to: colorSchema,
+        })
+        .optional(),
       colors: z
         .object({
           primary: colorSchema,
@@ -50,6 +59,7 @@ const templateSchema = z.object({
     })
     .optional(),
   isPremium: z.boolean().default(false),
+  isActive: z.boolean().default(true),
 });
 
 export async function GET(req: Request) {
@@ -57,9 +67,10 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
     const isPremium = searchParams.get("isPremium");
+    const includeInactive = searchParams.get("includeInactive") === "true";
 
     const where = {
-      isActive: true,
+      ...(includeInactive ? {} : { isActive: true }),
       ...(category ? { category } : {}),
       ...(isPremium ? { isPremium: isPremium === "true" } : {}),
     };
@@ -96,7 +107,7 @@ export async function POST(req: Request) {
     const { thumbnail, previewImage, description, ...data } = parsed.data;
 
     // 🔧 PERBAIKAN: Bangun object secara conditional
-    const createData: any = {
+    const createData: Prisma.TemplateCreateInput = {
       ...data,
       description: description || null,
       createdBy: session.user.id,

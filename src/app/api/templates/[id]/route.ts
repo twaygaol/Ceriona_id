@@ -17,12 +17,20 @@ const updateTemplateSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   description: z.string().optional().or(z.literal("")),
-  category: z.enum(["wedding", "birthday", "graduation"]).optional(),
+  category: z.enum(["wedding", "birthday", "graduation", "custom"]).optional(),
   thumbnail: z.string().url().optional().or(z.literal("")),
   previewImage: z.string().url().optional().or(z.literal("")),
   layout: z
     .object({
       sections: z.array(z.enum(templateSections)).min(1),
+      featured: z.boolean().optional(),
+      visualTheme: z.string().optional(),
+      backgroundGradient: z
+        .object({
+          from: z.string().optional(),
+          to: z.string().optional(),
+        })
+        .optional(),
       colors: z
         .object({
           primary: z.string().optional(),
@@ -50,11 +58,13 @@ const updateTemplateSchema = z.object({
 });
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(req.url);
+    const includeInactive = searchParams.get("includeInactive") === "true";
     
     // Hapus orderBy jika field order tidak ada di database
     const template = await prisma.template.findUnique({
@@ -62,7 +72,7 @@ export async function GET(
       include: { components: true },  // Hapus orderBy jika error
     });
 
-    if (!template || !template.isActive) {
+    if (!template || (!includeInactive && !template.isActive)) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
 

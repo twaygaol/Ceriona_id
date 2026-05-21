@@ -6,6 +6,10 @@ const rsvpSchema = z.object({
   name: z.string().min(2),
   attending: z.union([z.boolean(), z.enum(["yes", "no"])]),
   guestCount: z.coerce.number().int().min(1).max(10).default(1),
+  session: z.enum(["akad", "reception", "both"]).optional(),
+  menuPreference: z.enum(["regular", "vegetarian", "kids", "other"]).optional(),
+  dietaryNote: z.string().max(200).optional(),
+  companionNames: z.string().max(300).optional(),
   message: z.string().optional(),
 });
 
@@ -34,13 +38,17 @@ export async function POST(
       return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
     }
 
-    const { name, attending, guestCount, message } = parsed.data;
+    const { name, attending, guestCount, session, menuPreference, dietaryNote, companionNames, message } = parsed.data;
 
     const rsvp = await prisma.rSVP.create({
       data: {
         name,
         attending: attending === true || attending === "yes",
         guestCount,
+        session,
+        menuPreference,
+        dietaryNote,
+        companionNames,
         message,
         invitationId,
       },

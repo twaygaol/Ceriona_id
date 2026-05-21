@@ -5,10 +5,10 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Template", href: "#templates" },
+  { label: "Tema", href: "#themes" },
   { label: "Fitur", href: "#features" },
-  { label: "Harga", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Harga", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 export function Navbar() {
@@ -29,13 +29,13 @@ export function Navbar() {
         "fixed top-0 left-0 right-0 z-100 transition-all duration-500",
         "px-5 md:px-12 py-4 md:py-5",
         isScrolled
-          ? "bg-[#FAF7F2]/90 backdrop-blur-md border-b border-[#C9A96E]/15"
+          ? "bg-[#fffaf4]/85 backdrop-blur-xl border-b border-[#241A16]/10"
           : "bg-transparent"
       )}
     >
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-serif text-4xl md:text-2xl font-semibold text-[#4A3728] tracking-wide">
+        <Link href="/" className="font-serif text-4xl md:text-2xl font-semibold text-[#241A16] tracking-wide">
           Cerio<span className="text-[#C9A96E]">na</span>
         </Link>
 
@@ -45,7 +45,7 @@ export function Navbar() {
             <li key={item.href}>
               <a
                 href={item.href}
-                className="text-xs font-medium tracking-[0.12em] uppercase text-[#7A5C42] hover:text-[#9E7A3E] transition-colors"
+            className="text-xs font-semibold tracking-[0.12em] uppercase text-[#6F5A4E] hover:text-[#241A16] transition-colors"
               >
                 {item.label}
               </a>
@@ -57,7 +57,7 @@ export function Navbar() {
         <Link
           href="/dashboard"
           prefetch={false}
-          className="hidden md:inline-block px-6 py-2 bg-[#4A3728] text-[#E8D5B0] text-xs font-medium tracking-[0.1em] uppercase rounded-sm hover:bg-[#9E7A3E] hover:text-white transition-all"
+          className="hidden rounded-full bg-[#241A16] px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#F6E7C8] transition-all hover:bg-[#3A2A22] md:inline-block"
         >
           Mulai Gratis
         </Link>
