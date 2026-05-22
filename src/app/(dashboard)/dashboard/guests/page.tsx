@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Download, MessageCircle, Upload, Users } from "lucide-react";
+import { Download, MessageCircle, Plus, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,12 +24,23 @@ interface GuestRow {
   invitationUrl?: string | null;
 }
 
+interface WhatsAppSendResult {
+  guestId: string;
+  name: string;
+  phone: string;
+  provider: "fonnte" | "wa_link";
+  status: "sent" | "failed" | "fallback_link";
+  url?: string;
+}
+
 export default function GuestsPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [guests, setGuests] = useState<GuestRow[]>([]);
+  const [newGuest, setNewGuest] = useState({ name: "", phone: "", email: "", group: "" });
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [message, setMessage] = useState("Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}");
+  const [lastResults, setLastResults] = useState<WhatsAppSendResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -88,15 +99,39 @@ export default function GuestsPage() {
     window.open(`/api/guests?invitationId=${selectedInvitationId}&export=csv`, "_blank");
   };
 
+  const createGuest = async () => {
+    if (!selectedInvitationId) return;
+    if (!newGuest.name.trim()) {
+      toast.error("Nama tamu wajib diisi");
+      return;
+    }
+
+    try {
+      const { data } = await axios.post<GuestRow>("/api/guests", {
+        invitationId: selectedInvitationId,
+        ...newGuest,
+      });
+      setGuests((current) => [data, ...current]);
+      setNewGuest({ name: "", phone: "", email: "", group: "" });
+      toast.success("Tamu berhasil ditambahkan");
+    } catch {
+      toast.error("Gagal menambahkan tamu");
+    }
+  };
+
   const sendWhatsApp = async () => {
     try {
-      const { data } = await axios.post<{ links: Array<{ url: string }> }>("/api/guests/whatsapp", {
+      const { data } = await axios.post<{ results: WhatsAppSendResult[]; links: Array<{ url: string }> }>("/api/guests/whatsapp", {
         guestIds: selectedGuestIds,
         message,
       });
 
+      setLastResults(data.results);
       data.links.slice(0, 10).forEach((link) => window.open(link.url, "_blank"));
-      toast.success(`${data.links.length} link WhatsApp dibuat. Browser mungkin membatasi tab massal.`);
+      const sent = data.results.filter((item) => item.status === "sent").length;
+      const fallback = data.results.filter((item) => item.status === "fallback_link").length;
+      const failed = data.results.filter((item) => item.status === "failed").length;
+      toast.success(`${sent} terkirim via API, ${fallback} fallback link, ${failed} gagal.`);
     } catch {
       toast.error("Gagal membuat link WhatsApp");
     }
@@ -135,6 +170,43 @@ export default function GuestsPage() {
 
       <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
         <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Plus className="size-5" /> Tambah Tamu Manual</CardTitle>
+          <CardDescription>Tambahkan satu tamu tanpa import Excel.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+          <input
+            value={newGuest.name}
+            onChange={(event) => setNewGuest((current) => ({ ...current, name: event.target.value }))}
+            className="input-premium"
+            placeholder="Nama tamu"
+          />
+          <input
+            value={newGuest.phone}
+            onChange={(event) => setNewGuest((current) => ({ ...current, phone: event.target.value }))}
+            className="input-premium"
+            placeholder="WhatsApp / Telepon"
+          />
+          <input
+            value={newGuest.email}
+            onChange={(event) => setNewGuest((current) => ({ ...current, email: event.target.value }))}
+            className="input-premium"
+            placeholder="Email opsional"
+          />
+          <input
+            value={newGuest.group}
+            onChange={(event) => setNewGuest((current) => ({ ...current, group: event.target.value }))}
+            className="input-premium"
+            placeholder="Group, contoh: keluarga"
+          />
+          <Button type="button" onClick={createGuest} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
+            <Plus className="size-4" />
+            Simpan
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
+        <CardHeader>
           <CardTitle>WhatsApp Broadcast</CardTitle>
           <CardDescription>Gunakan placeholder {"{name}"} dan {"{url}"} untuk pesan personal.</CardDescription>
         </CardHeader>
@@ -144,6 +216,22 @@ export default function GuestsPage() {
             <MessageCircle className="size-4" />
             Kirim ke {selectedCount} tamu
           </Button>
+          <p className="text-xs text-brown-light">
+            Jika `FONNTE_TOKEN` tersedia, pesan dikirim via API. Jika belum, sistem otomatis membuat link WhatsApp sebagai fallback.
+          </p>
+          {lastResults.length > 0 && (
+            <div className="rounded-2xl border border-gold/15 bg-white p-4">
+              <p className="mb-3 text-sm font-medium text-brown">Hasil broadcast terakhir</p>
+              <div className="space-y-2">
+                {lastResults.slice(0, 8).map((result) => (
+                  <div key={result.guestId} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-brown">{result.name}</span>
+                    <span className="rounded-full bg-brown/10 px-3 py-1 text-xs text-brown">{result.provider} · {result.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

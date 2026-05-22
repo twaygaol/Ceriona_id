@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Calendar, Clock, Copy, Gift, Heart, MapPin, MessageCircleHeart, Navigation, Quote, Sparkles } from "lucide-react";
+import { Calendar, Clock, Copy, Gift, Heart, MapPin, MessageCircleHeart, Navigation, PlayCircle, Quote, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { RSVPForm } from "@/features/rsvp/RSVPForm";
 import type { TemplateSection, TemplateSectionProps } from "@/types/template";
@@ -333,6 +333,59 @@ function GiftSection({ invitation, colors, template }: TemplateSectionProps) {
   );
 }
 
+interface LiveStreamItem {
+  id: string;
+  provider: string;
+  title: string;
+  url: string;
+  scheduledAt?: string | null;
+  status: string;
+}
+
+function LiveStreamingSection({ invitation, colors, template }: TemplateSectionProps) {
+  const [streams, setStreams] = useState<LiveStreamItem[]>([]);
+
+  useEffect(() => {
+    async function loadStreams() {
+      try {
+        const response = await fetch(`/api/live-streams/${invitation.id}`, { cache: "no-store" });
+        if (response.ok) setStreams(await response.json());
+      } catch {
+        setStreams([]);
+      }
+    }
+
+    loadStreams();
+  }, [invitation.id]);
+
+  if (streams.length === 0) return null;
+
+  return (
+    <SectionShell eyebrow="Watch Online" title="Live Streaming" colors={colors} template={template}>
+      <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
+        {streams.map((stream) => (
+          <GlassCard key={stream.id} className="p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full text-white" style={{ backgroundColor: color(colors, "primary", "#4A3728") }}>
+                <PlayCircle className="size-5" />
+              </div>
+              <div>
+                <p className="font-medium">{stream.title}</p>
+                <p className="text-xs uppercase tracking-[0.2em] opacity-55">{stream.provider} · {stream.status}</p>
+              </div>
+            </div>
+            {stream.scheduledAt && <p className="mb-5 text-sm opacity-70">{new Date(stream.scheduledAt).toLocaleString("id-ID")}</p>}
+            <a href={stream.url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium text-white transition hover:scale-[1.01]" style={{ backgroundColor: color(colors, "primary", "#4A3728") }}>
+              <PlayCircle className="size-4" />
+              Tonton Live
+            </a>
+          </GlassCard>
+        ))}
+      </div>
+    </SectionShell>
+  );
+}
+
 function FooterSection({ invitation, colors }: TemplateSectionProps) {
   return (
     <footer className="relative overflow-hidden px-4 py-20 text-center text-white" style={{ backgroundColor: color(colors, "primary", "#4A3728") }}>
@@ -361,6 +414,7 @@ const sectionComponents: Record<TemplateSection, React.ComponentType<TemplateSec
   rsvp: RSVPSection,
   wishes: WishesSection,
   gift: GiftSection,
+  "live-streaming": LiveStreamingSection,
   footer: FooterSection,
 };
 

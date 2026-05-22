@@ -17,6 +17,7 @@ model User {
   name          String?
   password      String
   avatar        String?
+  role          String    @default("user") // user, admin
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -49,6 +50,7 @@ model Invitation {
   rsvps           RSVP[]
   guests          Guest[]
   virtualGifts    VirtualGift[]
+  liveStreams     LiveStream[]
 }
 
 model Gallery {
@@ -91,6 +93,20 @@ model Guest {
 
   invitationId  String
   invitation    Invitation @relation(fields: [invitationId], references: [id])
+  whatsappLogs  WhatsAppLog[]
+}
+
+model WhatsAppLog {
+  id            String    @id @default(cuid())
+  provider      String
+  phone         String
+  message       String
+  status        String    @default("pending") // pending, sent, failed, fallback_link
+  response      Json?
+  createdAt     DateTime  @default(now())
+
+  guestId       String?
+  guest         Guest?    @relation(fields: [guestId], references: [id])
 }
 
 model VirtualGift {
@@ -100,6 +116,21 @@ model VirtualGift {
   accountNumber String?
   accountName   String?
   qrImageUrl    String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model LiveStream {
+  id            String    @id @default(cuid())
+  provider      String    // youtube, zoom, meet, instagram, custom
+  title         String
+  url           String
+  scheduledAt   DateTime?
+  status        String    @default("scheduled") // scheduled, live, ended
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

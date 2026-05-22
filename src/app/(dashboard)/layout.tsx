@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getSession, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
@@ -15,6 +15,7 @@ import {
   Settings, 
   CreditCard,
   Gift,
+  Radio,
   Menu,
   X,
   LogOut,
@@ -23,13 +24,27 @@ import {
 import { cn } from "@/lib/utils";
 import type { Session } from "next-auth";
 
-const menuItems = [
+const userMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Mail, label: "Kelola Undangan", href: "/dashboard/invitations" },
-  { icon: LayoutTemplate, label: "Template", href: "/dashboard/templates" },
+  { icon: Mail, label: "Undangan Saya", href: "/dashboard/invitations" },
   { icon: Users, label: "Data Tamu", href: "/dashboard/guests" },
   { icon: CheckSquare, label: "RSVP", href: "/dashboard/rsvp" },
   { icon: Gift, label: "Wedding Gift", href: "/dashboard/gifts" },
+  { icon: Radio, label: "Live Streaming", href: "/dashboard/live-streaming" },
+  { icon: Music, label: "Musik", href: "/dashboard/music" },
+  { icon: Image, label: "Galeri", href: "/dashboard/gallery" },
+  { icon: Settings, label: "Pengaturan", href: "/dashboard/settings" },
+  { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
+];
+
+const adminMenuItems = [
+  { icon: LayoutDashboard, label: "Admin Overview", href: "/dashboard" },
+  { icon: Mail, label: "Semua Undangan", href: "/dashboard/invitations" },
+  { icon: LayoutTemplate, label: "Template Builder", href: "/dashboard/templates" },
+  { icon: Users, label: "Data Tamu", href: "/dashboard/guests" },
+  { icon: CheckSquare, label: "RSVP", href: "/dashboard/rsvp" },
+  { icon: Gift, label: "Wedding Gift", href: "/dashboard/gifts" },
+  { icon: Radio, label: "Live Streaming", href: "/dashboard/live-streaming" },
   { icon: Music, label: "Musik", href: "/dashboard/music" },
   { icon: Image, label: "Galeri", href: "/dashboard/gallery" },
   { icon: Settings, label: "Pengaturan", href: "/dashboard/settings" },
@@ -44,6 +59,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     getSession().then(setSession);
@@ -51,6 +67,15 @@ export default function DashboardLayout({
 
   const userName = session?.user?.name || session?.user?.email || "User";
   const userEmail = session?.user?.email;
+  const isAdmin = session?.user?.role === "admin";
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
+  useEffect(() => {
+    if (!session) return;
+    if (!isAdmin && pathname.startsWith("/dashboard/templates")) {
+      router.replace("/dashboard/invitations");
+    }
+  }, [isAdmin, pathname, router, session]);
 
   return (
     <div className="min-h-screen bg-cream">
@@ -74,6 +99,9 @@ export default function DashboardLayout({
           <Link href="/" className="font-serif text-4xl font-semibold text-brown">
             Cerio<span className="text-gold">na</span>
           </Link>
+          <div className="mt-3 inline-flex rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold-dark">
+            {isAdmin ? "Admin Dashboard" : "User Dashboard"}
+          </div>
         </div>
         
         <nav className="mt-6 pb-36">

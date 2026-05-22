@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Copy, Edit, Eye, Pin, Plus, Sparkles, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -28,6 +28,8 @@ function buildDuplicateSlug(baseSlug: string, existingSlugs: string[]) {
 
 export default function TemplatesPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const routeBase = pathname.startsWith("/admin") ? "/admin/templates" : "/dashboard/templates";
   const [templates, setTemplates] = useState<DashboardTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<(typeof categories)[number]>("all");
@@ -97,7 +99,7 @@ export default function TemplatesPage() {
           <p className="text-brown-light mt-1">Buat dan kelola template undangan</p>
         </div>
         <Button
-          onClick={() => router.push("/dashboard/templates/create")}
+          onClick={() => router.push(`${routeBase}/create`)}
           className="bg-brown text-gold-light hover:bg-gold hover:text-brown"
         >
           <Plus size={18} />
@@ -235,7 +237,7 @@ export default function TemplatesPage() {
                       <Copy size={16} />
                     </button>
                     <button
-                      onClick={() => router.push(`/dashboard/templates/${template.id}/edit`)}
+                      onClick={() => router.push(`${routeBase}/${template.id}/edit`)}
                       className="rounded-xl p-2 text-brown-light transition-colors hover:bg-brown/5 hover:text-gold"
                       title="Edit"
                     >
@@ -288,7 +290,7 @@ export default function TemplatesPage() {
                         <p className="text-xs uppercase tracking-[0.28em] opacity-60">Template Preview</p>
                         <h3 className="mt-2 font-serif text-4xl">{previewTemplate.name}</h3>
                       </div>
-                      <Button variant="outline" onClick={() => router.push(`/dashboard/templates/${previewTemplate.id}/edit`)}>
+                      <Button variant="outline" onClick={() => router.push(`${routeBase}/${previewTemplate.id}/edit`)}>
                         Edit Template
                       </Button>
                     </div>

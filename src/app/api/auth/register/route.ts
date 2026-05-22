@@ -25,12 +25,14 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userCount = await prisma.user.count();
 
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
+        role: userCount === 0 ? "admin" : "user",
       },
     });
 

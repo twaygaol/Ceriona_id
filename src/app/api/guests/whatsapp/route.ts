@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { buildWhatsAppMessage, normalizePhone, sendWhatsAppMessage } from "@/services/whatsappService";
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +13,10 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { guestIds, message } = await req.json();
+    if (!Array.isArray(guestIds) || guestIds.length === 0) {
+      return NextResponse.json({ error: "Pilih minimal satu tamu" }, { status: 400 });
+    }
+
     const guests = await prisma.guest.findMany({
       where: {
         id: { in: Array.isArray(guestIds) ? guestIds : [] },
@@ -19,24 +24,54 @@ export async function POST(req: Request) {
       },
     });
 
-    const links = guests
-      .filter((guest) => guest.phone)
-      .map((guest) => {
-        const phone = String(guest.phone).replace(/\D/g, "").replace(/^0/, "62");
-        const text = encodeURIComponent(
-          (message || "Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}")
-            .replaceAll("{name}", guest.name)
-            .replaceAll("{url}", guest.invitationUrl ?? "")
-        );
+    const template = message || "Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}";
+    const results = [];
 
-        return { guestId: guest.id, name: guest.name, phone, url: `https://wa.me/${phone}?text=${text}` };
-      });
+    for (const guest of guests.filter((item) => item.phone)) {
+      const text = buildWhatsAppMessage(template, { name: guest.name, url: guest.invitationUrl });
+      const phone = normalizePhone(String(guest.phone));
+      const result = await sendWhatsAppMessage({ phone, message: text });
 
-    await prisma.guest.updateMany({ where: { id: { in: links.map((link) => link.guestId) } }, data: { status: "sent" } });
+      try {
+        await prisma.whatsAppLog.create({
+          data: {
+            guestId: guest.id,
+            provider: result.provider,
+            phone,
+            message: text,
+            status: result.status,
+            response: result.response === undefined ? undefined : JSON.parse(JSON.stringify(result.response)),
+          },
+        });
+      } catch (logError) {
+        console.warn("WhatsApp log skipped:", logError);
+      }
 
-    return NextResponse.json({ links });
+      try {
+        await prisma.guest.update({
+          where: { id: guest.id },
+          data: { status: result.status === "failed" ? "failed" : "sent" },
+        });
+      } catch (guestUpdateError) {
+        console.warn("Guest status update skipped:", guestUpdateError);
+      }
+
+      results.push({ guestId: guest.id, name: guest.name, phone, ...result });
+    }
+
+    if (results.length === 0) {
+      return NextResponse.json({ error: "Tamu terpilih belum punya nomor WhatsApp" }, { status: 400 });
+    }
+
+    return NextResponse.json({ results, links: results.filter((item) => item.url) });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to generate WhatsApp links" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to generate WhatsApp links",
+        detail: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

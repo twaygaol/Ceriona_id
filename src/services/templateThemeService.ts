@@ -47,7 +47,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       isPremium: true,
       category: "wedding",
     },
-    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
+    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
       eyebrow: "The Wedding Of",
       buttonLabel: "Lihat Undangan",
@@ -203,7 +203,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       isPremium: true,
       category: "wedding",
     },
-    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
+    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
       eyebrow: "Pawiwahan",
       buttonLabel: "Mlebet Undangan",

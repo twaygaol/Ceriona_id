@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useInvitationStore } from "@/store/useInvitationStore";
 import { Plus, Edit, Trash2, Copy, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import Link from "next/link";
 
 export default function InvitationsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const routeBase = pathname.startsWith("/admin") ? "/admin/invitations" : "/dashboard/invitations";
   const { invitations, fetchInvitations, deleteInvitation, publishInvitation } = useInvitationStore();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -68,7 +70,7 @@ export default function InvitationsPage() {
           <p className="text-brown-light mt-1">Buat dan kelola semua undangan digital Anda</p>
         </div>
         <Link
-          href="/dashboard/invitations/create"
+          href={`${routeBase}/create`}
           className="flex items-center gap-2 px-4 py-2 bg-brown text-gold-light rounded-lg hover:bg-gold hover:text-brown transition-colors"
         >
           <Plus size={18} />
@@ -79,7 +81,7 @@ export default function InvitationsPage() {
       {invitations.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-lg border border-gold/20">
           <p className="text-brown-light mb-4">Belum ada undangan</p>
-          <Link href="/dashboard/invitations/create" className="text-gold hover:text-gold-dark">
+          <Link href={`${routeBase}/create`} className="text-gold hover:text-gold-dark">
             Buat undangan pertama Anda →
           </Link>
         </div>
@@ -118,7 +120,7 @@ export default function InvitationsPage() {
                     <Copy size={18} />
                   </button>
                   <button
-                    onClick={() => router.push(`/dashboard/invitations/edit/${invitation.id}`)}
+                    onClick={() => router.push(`${routeBase}/edit/${invitation.id}`)}
                     className="p-2 text-brown-light hover:text-gold transition-colors"
                     title="Edit"
                   >

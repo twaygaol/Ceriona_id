@@ -41,6 +41,7 @@ import {
   Sparkles,
   WandSparkles,
   Gift,
+  Radio,
   Timer,
 } from "lucide-react";
 import { Cormorant_Garamond, DM_Sans, Great_Vibes, Inter, Montserrat, Playfair_Display, Poppins } from "next/font/google";
@@ -166,10 +167,11 @@ const sectionOptions: Array<{ value: TemplateSection; label: string; description
   { value: "rsvp", label: "RSVP Form", description: "Form konfirmasi kehadiran tamu.", icon: BadgeCheck },
   { value: "wishes", label: "Guest Wishes", description: "Daftar ucapan dan doa tamu.", icon: MessageCircleHeart },
   { value: "gift", label: "Gift", description: "Amplop digital atau info hadiah.", icon: Gift },
+  { value: "live-streaming", label: "Live Streaming", description: "Link YouTube, Zoom, Meet, Instagram, atau live custom.", icon: Radio },
   { value: "footer", label: "Footer", description: "Penutup dan ucapan terima kasih.", icon: PartyPopper },
 ];
 
-const defaultSections: TemplateSection[] = ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "footer"];
+const defaultSections: TemplateSection[] = ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"];
 
 function slugify(value: string) {
   return value

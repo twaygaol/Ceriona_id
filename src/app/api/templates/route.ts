@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 
 const templateSections = [
   "opening", "hero", "quote", "countdown", "story", 
-  "gallery", "event", "rsvp", "wishes", "gift", "footer"
+  "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"
 ] as const;
 
 const colorSchema = z

@@ -11,6 +11,7 @@ export const templateSections = [
   "rsvp",
   "wishes",
   "gift",
+  "live-streaming",
   "footer",
 ] as const;
 
