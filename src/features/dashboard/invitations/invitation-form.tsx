@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -62,6 +62,7 @@ function hasSection(template: DashboardTemplate | null, section: TemplateSection
 
 export function InvitationForm({ mode, initialInvitation }: InvitationFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [templates, setTemplates] = useState<DashboardTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<DashboardTemplate | null>(null);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
@@ -96,7 +97,15 @@ export function InvitationForm({ mode, initialInvitation }: InvitationFormProps)
         setTemplates(data);
 
         const activeTemplates = data.filter((template) => template.isActive);
-        const initialTemplate = activeTemplates.find((template) => template.id === initialInvitation?.templateId) ?? activeTemplates[0] ?? null;
+        const requestedTheme = searchParams.get("theme");
+        const themeMatchedTemplate = requestedTheme
+          ? activeTemplates.find((template) => template.layout.visualTheme === requestedTheme)
+          : null;
+        const initialTemplate =
+          activeTemplates.find((template) => template.id === initialInvitation?.templateId) ??
+          themeMatchedTemplate ??
+          activeTemplates[0] ??
+          null;
         if (initialTemplate) {
           setSelectedTemplate(initialTemplate);
           setValue("templateId", initialTemplate.id);
@@ -109,7 +118,7 @@ export function InvitationForm({ mode, initialInvitation }: InvitationFormProps)
     }
 
     loadTemplates();
-  }, [initialInvitation?.templateId, setValue]);
+  }, [initialInvitation?.templateId, searchParams, setValue]);
 
   const recommendedTemplates = useMemo(() => {
     if (!selectedTemplate) return templates.slice(0, 3);

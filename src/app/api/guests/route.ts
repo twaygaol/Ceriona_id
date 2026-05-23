@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { assertGuestQuota, normalizeGuestPhone } from "@/services/guestPolicyService";
 
 const guestSchema = z.object({
   invitationId: z.string().min(1),
@@ -84,11 +85,48 @@ export async function POST(req: Request) {
     });
     if (!invitation) return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
 
+    const quota = await assertGuestQuota(userId, 1);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: `Kuota tamu paket ${quota.plan.label} habis. Limit ${quota.limit} tamu, saat ini ${quota.currentGuests}.` },
+        { status: 403 }
+      );
+    }
+
+    const normalizedPhone = normalizeGuestPhone(parsed.data.phone);
+    if (normalizedPhone) {
+      const duplicateGuest = await prisma.guest.findFirst({
+        where: {
+          invitationId: parsed.data.invitationId,
+          phone: normalizedPhone,
+        },
+        select: { id: true },
+      });
+
+      if (duplicateGuest) {
+        return NextResponse.json({ error: "Nomor WhatsApp tamu sudah terdaftar pada undangan ini" }, { status: 409 });
+      }
+    }
+
+    if (parsed.data.email) {
+      const duplicateEmailGuest = await prisma.guest.findFirst({
+        where: {
+          invitationId: parsed.data.invitationId,
+          email: parsed.data.email,
+        },
+        select: { id: true },
+      });
+
+      if (duplicateEmailGuest) {
+        return NextResponse.json({ error: "Email tamu sudah terdaftar pada undangan ini" }, { status: 409 });
+      }
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const guest = await prisma.guest.create({
       data: {
         ...parsed.data,
-        phone: parsed.data.phone || null,
+        phone: normalizedPhone || null,
         email: parsed.data.email || null,
         group: parsed.data.group || null,
         invitationUrl: `${appUrl}/invitation/${invitation.slug}`,

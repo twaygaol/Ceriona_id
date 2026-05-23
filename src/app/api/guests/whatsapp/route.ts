@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { buildWhatsAppMessage, normalizePhone, sendWhatsAppMessage } from "@/services/whatsappService";
+import { assertFeatureAccess } from "@/services/subscriptionService";
 
 export async function POST(req: Request) {
   try {
@@ -11,6 +12,11 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const featureAccess = await assertFeatureAccess(user.id, "whatsappBroadcast");
+    if (!featureAccess.allowed) {
+      return NextResponse.json({ error: `Fitur WhatsApp Broadcast tersedia mulai paket Premium. Paket aktif Anda: ${featureAccess.plan.label}.` }, { status: 403 });
+    }
 
     const { guestIds, message } = await req.json();
     if (!Array.isArray(guestIds) || guestIds.length === 0) {

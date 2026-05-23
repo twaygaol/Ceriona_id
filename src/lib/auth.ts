@@ -4,6 +4,12 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+type EmailVerificationDelegate = {
+  findUnique: (args: unknown) => Promise<{ verified: boolean } | null>;
+};
+
+const emailVerification = (prisma as unknown as Record<string, EmailVerificationDelegate>)["emailVerification"];
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -24,6 +30,23 @@ export const authOptions: NextAuthOptions = {
 
         if (!user || !user.password) {
           throw new Error("User tidak ditemukan");
+        }
+
+        try {
+          const verification = await emailVerification.findUnique({
+            where: { email: user.email },
+            select: { verified: true },
+          });
+
+          if (verification && !verification.verified) {
+            throw new Error("Email belum diverifikasi");
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Email belum diverifikasi")) {
+            throw error;
+          }
+          console.warn("Email verification table unavailable, skipping verification check.");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);

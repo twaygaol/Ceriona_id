@@ -31,6 +31,7 @@ export default function EditTemplatePage() {
 
   if (isLoading) {
     return <div className="py-20 text-center">Memuat template...</div>;
+    return <div className="py-20 text-center"></div>;
   }
 
   return template ? <TemplateEditor mode="edit" initialTemplate={template} /> : null;

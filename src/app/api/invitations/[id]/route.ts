@@ -35,9 +35,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
-    const invitation = await prisma.invitation.findUnique({
-      where: { id },
+    const invitation = await prisma.invitation.findFirst({
+      where: { id, userId: user.id },
       include: {
         gallery: true,
         rsvps: true,

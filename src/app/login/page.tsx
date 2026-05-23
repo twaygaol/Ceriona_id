@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { getSession } from "next-auth/react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,8 +26,10 @@ export default function LoginPage() {
     if (result?.error) {
       toast.error(result.error);
     } else {
+      const session = await getSession();
+      const defaultRoute = session?.user?.role === "admin" ? "/admin" : "/dashboard";
       toast.success("Login berhasil!");
-      router.push("/dashboard");
+      router.push(searchParams.get("next") || defaultRoute);
     }
     setIsLoading(false);
   };

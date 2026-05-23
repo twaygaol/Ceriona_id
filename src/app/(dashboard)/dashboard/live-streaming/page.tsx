@@ -18,6 +18,7 @@ export default function LiveStreamingPage() {
   const [streams, setStreams] = useState<LiveStreamItem[]>([]);
   const [form, setForm] = useState(defaultForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [featureLocked, setFeatureLocked] = useState(false);
 
   useEffect(() => {
     async function loadInvitations() {
@@ -33,8 +34,9 @@ export default function LiveStreamingPage() {
       if (!selectedInvitationId) return;
       const { data } = await axios.get<LiveStreamItem[]>(`/api/live-streams/${selectedInvitationId}`);
       setStreams(data);
+      setFeatureLocked(false);
     }
-    loadStreams().catch(() => toast.error("Gagal memuat live stream"));
+    loadStreams().catch(() => setFeatureLocked(true));
   }, [selectedInvitationId]);
 
   const saveStream = async () => {
@@ -46,8 +48,12 @@ export default function LiveStreamingPage() {
       setForm(defaultForm);
       const { data } = await axios.get<LiveStreamItem[]>(`/api/live-streams/${selectedInvitationId}`);
       setStreams(data);
-    } catch {
-      toast.error("Gagal menyimpan live stream");
+    } catch (error) {
+      if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Gagal menyimpan live stream");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -80,6 +86,7 @@ export default function LiveStreamingPage() {
         </CardContent>
       </Card>
 
+      {featureLocked && <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Fitur Live Streaming tersedia mulai paket Premium. Upgrade paket untuk mengaktifkan fitur ini.</div>}
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
         <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
           <CardHeader><CardTitle className="flex items-center gap-2"><Radio className="size-5" /> Tambah Live</CardTitle><CardDescription>Isi jadwal dan link live streaming.</CardDescription></CardHeader>
@@ -99,7 +106,7 @@ export default function LiveStreamingPage() {
               <option value="live">Live</option>
               <option value="ended">Ended</option>
             </select>
-            <Button type="button" disabled={isSaving} onClick={saveStream} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
+            <Button type="button" disabled={isSaving || featureLocked} onClick={saveStream} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
               <PlayCircle className="size-4" /> {isSaving ? "Menyimpan..." : "Simpan Live"}
             </Button>
           </CardContent>

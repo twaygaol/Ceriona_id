@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import axios, { AxiosError } from "axios";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
+  const [accountInfo, setAccountInfo] = useState<{ username: string; email: string; temporaryPassword: string } | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState<{ verification?: { delivered?: boolean; provider?: string }; account?: { delivered?: boolean; provider?: string } } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,13 +20,26 @@ export default function RegisterPage() {
 
     const formData = new FormData(e.currentTarget);
     try {
-      await axios.post("/api/auth/register", {
+      const response = await axios.post("/api/auth/register", {
         name: formData.get("name"),
         email: formData.get("email"),
-        password: formData.get("password"),
       });
-      toast.success("Registrasi berhasil! Silakan login.");
-      router.push("/login");
+      setVerificationUrl(response.data.verificationUrl ?? null);
+      setAccountInfo(response.data.account ?? null);
+      setEmailDelivery(response.data.emailDelivery ?? null);
+
+      if (response.data.account) {
+        localStorage.setItem(
+          "pendingAuth",
+          JSON.stringify({
+            email: response.data.account.email,
+            password: response.data.account.temporaryPassword,
+            next: searchParams.get("next") || "/dashboard",
+          })
+        );
+      }
+
+      toast.success("Registrasi berhasil! Verifikasi email dulu untuk lanjut ke dashboard.");
     } catch (error) {
       const message =
         error instanceof AxiosError && typeof error.response?.data?.error === "string"
@@ -37,9 +54,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-cream px-5">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <Link href="/" className="font-serif text-2xl text-brown">Kundang<span className="text-gold">an</span></Link>
+          <Link href="/" className="font-serif text-2xl text-brown">Cerio<span className="text-gold">na</span></Link>
           <h1 className="font-serif text-2xl text-brown mt-4">Buat Akun Baru</h1>
-          <p className="text-brown-light text-sm mt-2">Mulai buat undangan digital impian Anda</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -63,17 +79,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-brown mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              required
-              minLength={6}
-              className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold"
-            />
-          </div>
-
           <button
             type="submit"
             disabled={isLoading}
@@ -82,6 +87,30 @@ export default function RegisterPage() {
             {isLoading ? "Memproses..." : "Daftar"}
           </button>
         </form>
+
+        <p className="mt-4 text-xs">Akun anda sementara akan dikirim lewat verifikasi email setelah registrasi berhasil.</p>
+
+        {verificationUrl && (
+          <div className="mt-6 rounded-2xl border border-gold/20 bg-cream p-4 text-sm text-brown-light">
+            <p className="font-medium text-brown">Verifikasi email terlebih dahulu</p>
+            <p className="mt-2 break-all">Link verifikasi: <a className="text-gold underline" href={verificationUrl}>{verificationUrl}</a></p>
+            {accountInfo && (
+              <div className="mt-4 rounded-xl bg-white p-3 text-left">
+                <p className="font-medium text-brown">Detail akun sementara</p>
+                <p className="mt-2 text-xs">Username: <span className="font-medium text-brown">{accountInfo.username}</span></p>
+                <p className="mt-1 text-xs">Email login: <span className="font-medium text-brown">{accountInfo.email}</span></p>
+                <p className="mt-1 text-xs">Password sementara: <span className="font-medium text-brown">{accountInfo.temporaryPassword}</span></p>
+              </div>
+            )}
+            {emailDelivery && (
+              <div className="mt-4 rounded-xl border border-gold/15 bg-white p-3 text-left text-xs text-brown-light">
+                <p>Email verifikasi: {emailDelivery.verification?.delivered ? `terkirim via ${emailDelivery.verification.provider}` : "mode dev / belum terkirim"}</p>
+                <p className="mt-1">Email detail akun: {emailDelivery.account?.delivered ? `terkirim via ${emailDelivery.account.provider}` : "mode dev / belum terkirim"}</p>
+              </div>
+            )}
+            <button onClick={() => router.push(verificationUrl)} className="mt-4 rounded-full bg-brown px-4 py-2 text-xs font-semibold text-gold-light">Buka Link Verifikasi</button>
+          </div>
+        )}
 
         <p className="text-center text-sm text-brown-light mt-6">
           Sudah punya akun?{" "}

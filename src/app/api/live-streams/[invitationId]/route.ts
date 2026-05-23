@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { assertFeatureAccess } from "@/services/subscriptionService";
 
 const liveStreamSchema = z.object({
   provider: z.enum(["youtube", "zoom", "meet", "instagram", "custom"]),
@@ -31,6 +32,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ invitat
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const featureAccess = await assertFeatureAccess(userId, "liveStreaming");
+    if (!featureAccess.allowed) {
+      return NextResponse.json({ error: `Fitur Live Streaming tersedia mulai paket Premium. Paket aktif Anda: ${featureAccess.plan.label}.` }, { status: 403 });
+    }
+
     const { invitationId } = await params;
     const invitation = await prisma.invitation.findFirst({ where: { id: invitationId, userId }, select: { id: true } });
     if (!invitation) return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
@@ -57,6 +63,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ invit
   try {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const featureAccess = await assertFeatureAccess(userId, "liveStreaming");
+    if (!featureAccess.allowed) {
+      return NextResponse.json({ error: `Fitur Live Streaming tersedia mulai paket Premium. Paket aktif Anda: ${featureAccess.plan.label}.` }, { status: 403 });
+    }
 
     const { invitationId } = await params;
     const { searchParams } = new URL(req.url);

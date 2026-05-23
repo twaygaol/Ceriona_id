@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
+const requestLog = new Map<string, number[]>();
+const WINDOW_MS = 60_000;
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+function getClientIp(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() || "unknown";
+}
+
+function isRateLimited(key: string) {
+  const now = Date.now();
+  const entries = requestLog.get(key) ?? [];
+  const recent = entries.filter((timestamp) => now - timestamp < WINDOW_MS);
+  recent.push(now);
+  requestLog.set(key, recent);
+  return recent.length > MAX_REQUESTS_PER_WINDOW;
+}
+
 const rsvpSchema = z.object({
   name: z.string().min(2),
   attending: z.union([z.boolean(), z.enum(["yes", "no"])]),
@@ -19,6 +37,11 @@ export async function POST(
 ) {
   try {
     const { invitationId } = await params;
+    const rateKey = `${invitationId}:${getClientIp(req)}`;
+    if (isRateLimited(rateKey)) {
+      return NextResponse.json({ error: "Terlalu banyak request RSVP, coba lagi sebentar." }, { status: 429 });
+    }
+
     const body = await req.json();
     const parsed = rsvpSchema.safeParse(body);
 

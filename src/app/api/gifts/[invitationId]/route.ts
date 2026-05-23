@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { assertFeatureAccess } from "@/services/subscriptionService";
 
 const giftSchema = z.object({
   type: z.enum(["bank", "ewallet", "payment_gateway"]).default("bank"),
@@ -26,6 +27,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ invitat
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const featureAccess = await assertFeatureAccess(user.id, "weddingGift");
+    if (!featureAccess.allowed) {
+      return NextResponse.json({ error: `Fitur Wedding Gift tersedia mulai paket Premium. Paket aktif Anda: ${featureAccess.plan.label}.` }, { status: 403 });
+    }
 
     const { invitationId } = await params;
     const invitation = await prisma.invitation.findFirst({ where: { id: invitationId, userId: user.id }, select: { id: true } });
@@ -58,6 +64,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ invit
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const featureAccess = await assertFeatureAccess(user.id, "weddingGift");
+    if (!featureAccess.allowed) {
+      return NextResponse.json({ error: `Fitur Wedding Gift tersedia mulai paket Premium. Paket aktif Anda: ${featureAccess.plan.label}.` }, { status: 403 });
+    }
 
     const { invitationId } = await params;
     const { searchParams } = new URL(req.url);

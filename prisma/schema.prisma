@@ -22,6 +22,9 @@ model User {
   updatedAt     DateTime  @updatedAt
   
   invitations   Invitation[]
+  billingOrders BillingOrder[]
+  subscriptions Subscription[]
+  paymentTransactions PaymentTransaction[]
 }
 
 model Invitation {
@@ -137,6 +140,63 @@ model LiveStream {
 
   invitationId  String
   invitation    Invitation @relation(fields: [invitationId], references: [id])
+}
+
+model BillingOrder {
+  id            String    @id @default(cuid())
+  plan          String    // free, premium, pro
+  amount        Int
+  status        String    @default("pending") // pending, paid, cancelled
+  paymentMethod String?   // bank_transfer, manual, gateway
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  paymentTransactions PaymentTransaction[]
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  plan          String    // free, premium, pro
+  status        String    @default("inactive") // active, inactive, expired
+  startsAt      DateTime  @default(now())
+  expiresAt     DateTime?
+  sourceOrderId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model PaymentTransaction {
+  id                 String    @id @default(cuid())
+  provider           String    // midtrans, xendit, manual
+  externalId         String    @unique
+  orderId            String
+  amount             Int
+  status             String    @default("pending") // pending, paid, failed, expired
+  signatureVerified  Boolean   @default(false)
+  rawPayload         Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  userId             String
+  user               User      @relation(fields: [userId], references: [id])
+
+  billingOrderId     String?
+  billingOrder       BillingOrder? @relation(fields: [billingOrderId], references: [id])
+}
+
+model EmailVerification {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  token         String    @unique
+  verified      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Template {

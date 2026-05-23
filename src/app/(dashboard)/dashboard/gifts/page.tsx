@@ -44,6 +44,7 @@ export default function GiftsPage() {
   const [gifts, setGifts] = useState<VirtualGiftItem[]>([]);
   const [form, setForm] = useState(defaultForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [featureLocked, setFeatureLocked] = useState(false);
 
   useEffect(() => {
     async function loadInvitations() {
@@ -65,8 +66,9 @@ export default function GiftsPage() {
       try {
         const { data } = await axios.get<VirtualGiftItem[]>(`/api/gifts/${selectedInvitationId}`);
         setGifts(data);
+        setFeatureLocked(false);
       } catch {
-        toast.error("Gagal memuat wedding gift");
+        setFeatureLocked(true);
       }
     }
 
@@ -121,6 +123,7 @@ export default function GiftsPage() {
         </CardContent>
       </Card>
 
+      {featureLocked && <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Fitur Wedding Gift tersedia mulai paket Premium. Upgrade paket untuk mengaktifkan fitur ini.</div>}
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
         <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
           <CardHeader>
@@ -140,7 +143,7 @@ export default function GiftsPage() {
             <Input label="Nomor Akun" value={form.accountNumber} placeholder="Nomor rekening / wallet" onChange={(accountNumber) => setForm((current) => ({ ...current, accountNumber }))} />
             <Input label="Nama Pemilik" value={form.accountName} placeholder="a.n. Nama Pemilik" onChange={(accountName) => setForm((current) => ({ ...current, accountName }))} />
             <Input label="QR Image URL" value={form.qrImageUrl} placeholder="https://..." onChange={(qrImageUrl) => setForm((current) => ({ ...current, qrImageUrl }))} />
-            <Button type="button" disabled={isSaving} onClick={saveGift} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
+            <Button type="button" disabled={isSaving || featureLocked} onClick={saveGift} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
               <Gift className="size-4" />
               {isSaving ? "Menyimpan..." : "Simpan Gift"}
             </Button>

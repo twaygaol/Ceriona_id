@@ -14,7 +14,7 @@ const adminItems = [
   { icon: Mail, label: "Undangan", href: "/admin/invitations" },
   { icon: Users, label: "Users", href: "/admin/users" },
   { icon: BarChart3, label: "Analytics", href: "/admin/analytics" },
-  { icon: CreditCard, label: "Billing", href: "/admin/billing" },
+  { icon: CreditCard, label: "Billing", href: "/admin/billing/orders" },
   { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 
@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <main className="min-h-screen lg:pl-72">
-        <div className="p-5 lg:p-8">{children}</div>
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(217,184,108,0.10),transparent_28%),linear-gradient(180deg,#0f0b09,#15100e)] p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

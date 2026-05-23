@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import axios from "axios";
 import { Shield, UserCog } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +12,8 @@ interface AdminUser {
   email: string;
   role: string;
   createdAt: string;
+  invitations: Array<{ id: string; isPublished: boolean; viewCount: number }>;
+  _count: { invitations: number };
 }
 
 export default function AdminUsersPage() {
@@ -55,6 +58,7 @@ export default function AdminUsersPage() {
               <th>Email</th>
               <th>Role</th>
               <th>Dibuat</th>
+              <th>Ringkasan</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -66,12 +70,13 @@ export default function AdminUsersPage() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D9B86C] text-[#15100e]">
                       {user.role === "admin" ? <Shield className="size-4" /> : <UserCog className="size-4" />}
                     </div>
-                    <span>{user.name || "Tanpa nama"}</span>
+                    <Link href={`/admin/clients/${user.id}`} className="hover:text-[#D9B86C]">{user.name || "Tanpa nama"}</Link>
                   </div>
                 </td>
                 <td>{user.email}</td>
                 <td><span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em]">{user.role}</span></td>
                 <td>{new Date(user.createdAt).toLocaleDateString("id-ID")}</td>
+                <td className="text-xs text-white/55">{user._count.invitations} undangan · {user.invitations.filter((item) => item.isPublished).length} published · {user.invitations.reduce((sum, item) => sum + item.viewCount, 0)} views</td>
                 <td>
                   <select value={user.role} onChange={(event) => updateRole(user.id, event.target.value)} className="rounded-xl border border-white/10 bg-[#15100e] px-3 py-2 text-white outline-none">
                     <option value="user">user</option>
