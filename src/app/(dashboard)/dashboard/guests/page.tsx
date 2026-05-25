@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Download, MessageCircle, Plus, Upload, Users } from "lucide-react";
+import { Download, MessageCircle, Plus, Search, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,7 @@ export default function GuestsPage() {
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [message, setMessage] = useState("Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}");
   const [lastResults, setLastResults] = useState<WhatsAppSendResult[]>([]);
+  const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -75,8 +76,9 @@ export default function GuestsPage() {
     loadGuests();
   }, [selectedInvitationId]);
 
+  const filteredGuests = guests.filter((guest) => guest.name.toLowerCase().includes(query.toLowerCase()) || guest.phone?.includes(query) || guest.email?.toLowerCase().includes(query.toLowerCase()));
   const selectedCount = selectedGuestIds.length;
-  const allSelected = useMemo(() => guests.length > 0 && selectedGuestIds.length === guests.length, [guests.length, selectedGuestIds.length]);
+  const allSelected = useMemo(() => filteredGuests.length > 0 && selectedGuestIds.length === filteredGuests.length, [filteredGuests, selectedGuestIds]);
 
   const importGuests = async (file: File) => {
     if (!selectedInvitationId) return;
@@ -85,12 +87,16 @@ export default function GuestsPage() {
     formData.append("file", file);
 
     try {
-      const { data } = await axios.post<{ imported: number }>("/api/guests/import", formData);
-      toast.success(`${data.imported} tamu berhasil diimport`);
+      const { data } = await axios.post<{ imported: number; skipped?: number }>("/api/guests/import", formData);
+      toast.success(`${data.imported} tamu berhasil diimport${data.skipped ? `, ${data.skipped} dilewati` : ""}`);
       const response = await axios.get<GuestRow[]>(`/api/guests?invitationId=${selectedInvitationId}`);
       setGuests(response.data);
-    } catch {
-      toast.error("Gagal import tamu. Gunakan CSV dari Excel dengan kolom name, phone, email, group.");
+    } catch (error) {
+      if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Gagal import tamu. Gunakan CSV dari Excel dengan kolom name, phone, email, group.");
+      }
     }
   };
 
@@ -114,8 +120,12 @@ export default function GuestsPage() {
       setGuests((current) => [data, ...current]);
       setNewGuest({ name: "", phone: "", email: "", group: "" });
       toast.success("Tamu berhasil ditambahkan");
-    } catch {
-      toast.error("Gagal menambahkan tamu");
+    } catch (error) {
+      if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Gagal menambahkan tamu");
+      }
     }
   };
 
@@ -132,147 +142,143 @@ export default function GuestsPage() {
       const fallback = data.results.filter((item) => item.status === "fallback_link").length;
       const failed = data.results.filter((item) => item.status === "failed").length;
       toast.success(`${sent} terkirim via API, ${fallback} fallback link, ${failed} gagal.`);
-    } catch {
-      toast.error("Gagal membuat link WhatsApp");
+    } catch (error) {
+      if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Gagal membuat link WhatsApp");
+      }
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.28em] text-brown-light">Guest Management</p>
-        <h1 className="font-serif text-3xl text-brown">Data Tamu</h1>
-        <p className="mt-1 text-sm text-brown-light">Import/export tamu dari Excel dan kirim undangan massal via WhatsApp.</p>
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Daftar Tamu</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-900">Kelola tamu undangan dengan rapi</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-500">Semua kebutuhan tamu, import CSV, create manual, dan broadcast WhatsApp difokuskan di satu halaman yang lebih ringan dan profesional.</p>
       </div>
 
-      <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle>Pilih Undangan</CardTitle>
-          <CardDescription>Data tamu dikelompokkan per undangan.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-[1fr_auto_auto]">
-          <select value={selectedInvitationId} onChange={(event) => setSelectedInvitationId(event.target.value)} className="input-premium">
-            {invitations.map((invitation) => (
-              <option key={invitation.id} value={invitation.id}>{invitation.title || `${invitation.brideName} & ${invitation.groomName}`}</option>
-            ))}
-          </select>
-          <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gold/20 bg-white px-4 text-sm text-brown transition hover:border-brown">
-            <Upload className="size-4" />
-            Import CSV/Excel
-            <input type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => event.target.files?.[0] && importGuests(event.target.files[0])} />
-          </label>
-          <Button type="button" variant="outline" onClick={exportGuests}>
-            <Download className="size-4" />
-            Export CSV
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Total Tamu" value={guests.length} />
+        <StatCard label="Tamu Dipilih" value={selectedCount} tone="emerald" />
+        <StatCard label="Group Terdeteksi" value={new Set(guests.map((guest) => guest.group).filter(Boolean)).size} tone="amber" />
+      </div>
 
-      <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Plus className="size-5" /> Tambah Tamu Manual</CardTitle>
-          <CardDescription>Tambahkan satu tamu tanpa import Excel.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-          <input
-            value={newGuest.name}
-            onChange={(event) => setNewGuest((current) => ({ ...current, name: event.target.value }))}
-            className="input-premium"
-            placeholder="Nama tamu"
-          />
-          <input
-            value={newGuest.phone}
-            onChange={(event) => setNewGuest((current) => ({ ...current, phone: event.target.value }))}
-            className="input-premium"
-            placeholder="WhatsApp / Telepon"
-          />
-          <input
-            value={newGuest.email}
-            onChange={(event) => setNewGuest((current) => ({ ...current, email: event.target.value }))}
-            className="input-premium"
-            placeholder="Email opsional"
-          />
-          <input
-            value={newGuest.group}
-            onChange={(event) => setNewGuest((current) => ({ ...current, group: event.target.value }))}
-            className="input-premium"
-            placeholder="Group, contoh: keluarga"
-          />
-          <Button type="button" onClick={createGuest} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
-            <Plus className="size-4" />
-            Simpan
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+        <div className="space-y-6">
+          <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-slate-900">Pilih Undangan</CardTitle>
+              <CardDescription>Semua tamu dikelompokkan berdasarkan undangan aktif.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 lg:grid-cols-[1fr_auto_auto]">
+              <select value={selectedInvitationId} onChange={(event) => setSelectedInvitationId(event.target.value)} className="input-premium">
+                {invitations.map((invitation) => <option key={invitation.id} value={invitation.id}>{invitation.title || `${invitation.brideName} & ${invitation.groomName}`}</option>)}
+              </select>
+              <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300">
+                <Upload className="size-4" /> Import CSV
+                <input type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => event.target.files?.[0] && importGuests(event.target.files[0])} />
+              </label>
+              <Button type="button" variant="outline" onClick={exportGuests}><Download className="size-4" /> Export</Button>
+            </CardContent>
+          </Card>
 
-      <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle>WhatsApp Broadcast</CardTitle>
-          <CardDescription>Gunakan placeholder {"{name}"} dan {"{url}"} untuk pesan personal.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} className="input-premium py-3" />
-          <Button type="button" disabled={selectedCount === 0} onClick={sendWhatsApp} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
-            <MessageCircle className="size-4" />
-            Kirim ke {selectedCount} tamu
-          </Button>
-          <p className="text-xs text-brown-light">
-            Jika `FONNTE_TOKEN` tersedia, pesan dikirim via API. Jika belum, sistem otomatis membuat link WhatsApp sebagai fallback.
-          </p>
+          <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900"><Plus className="size-5" /> Tambah Tamu Manual</CardTitle>
+              <CardDescription>Tambah tamu satu per satu tanpa harus import file.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+              <input value={newGuest.name} onChange={(event) => setNewGuest((current) => ({ ...current, name: event.target.value }))} className="input-premium" placeholder="Nama tamu" />
+              <input value={newGuest.phone} onChange={(event) => setNewGuest((current) => ({ ...current, phone: event.target.value }))} className="input-premium" placeholder="WhatsApp / Telepon" />
+              <input value={newGuest.email} onChange={(event) => setNewGuest((current) => ({ ...current, email: event.target.value }))} className="input-premium" placeholder="Email opsional" />
+              <input value={newGuest.group} onChange={(event) => setNewGuest((current) => ({ ...current, group: event.target.value }))} className="input-premium" placeholder="Group, mis. keluarga" />
+              <Button type="button" onClick={createGuest} className="bg-[#0f172a] text-white hover:bg-slate-800"><Plus className="size-4" /> Simpan</Button>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900"><Users className="size-5" /> Daftar Tamu</CardTitle>
+              <CardDescription>Data tamu yang aktif untuk undangan terpilih.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama, nomor, atau email tamu..." className="input-premium pl-10" />
+              </div>
+
+              {isLoading ? (
+                <div className="py-10 text-center text-slate-500">Memuat tamu...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[760px] text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-slate-400">
+                        <th className="py-3 pr-3"><input type="checkbox" checked={allSelected} onChange={(event) => setSelectedGuestIds(event.target.checked ? filteredGuests.map((guest) => guest.id) : [])} /></th>
+                        <th>Nama</th>
+                        <th>WhatsApp</th>
+                        <th>Email</th>
+                        <th>Group</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredGuests.map((guest) => (
+                        <tr key={guest.id} className="border-b border-slate-100">
+                          <td className="py-3 pr-3"><input type="checkbox" checked={selectedGuestIds.includes(guest.id)} onChange={(event) => setSelectedGuestIds((current) => event.target.checked ? [...current, guest.id] : current.filter((id) => id !== guest.id))} /></td>
+                          <td className="font-medium text-slate-900">{guest.name}</td>
+                          <td className="text-slate-600">{guest.phone || "-"}</td>
+                          <td className="text-slate-600">{guest.email || "-"}</td>
+                          <td className="text-slate-600">{guest.group || "-"}</td>
+                          <td><span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">{guest.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-slate-900">WhatsApp Broadcast</CardTitle>
+              <CardDescription>Gunakan placeholder {"{name}"} dan {"{url}"} untuk pesan personal.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={4} className="input-premium py-3" />
+              <Button type="button" disabled={selectedCount === 0} onClick={sendWhatsApp} className="w-full bg-[#0f172a] text-white hover:bg-slate-800"><MessageCircle className="size-4" /> Kirim ke {selectedCount} tamu</Button>
+              <p className="text-xs text-slate-400">Jika `FONNTE_TOKEN` tersedia, pesan dikirim via API. Jika belum, sistem membuat link WhatsApp sebagai fallback.</p>
+            </CardContent>
+          </Card>
+
           {lastResults.length > 0 && (
-            <div className="rounded-2xl border border-gold/15 bg-white p-4">
-              <p className="mb-3 text-sm font-medium text-brown">Hasil broadcast terakhir</p>
-              <div className="space-y-2">
+            <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-slate-900">Hasil Broadcast Terakhir</CardTitle>
+                <CardDescription>Ringkasan pengiriman paling baru.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {lastResults.slice(0, 8).map((result) => (
-                  <div key={result.guestId} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-brown">{result.name}</span>
-                    <span className="rounded-full bg-brown/10 px-3 py-1 text-xs text-brown">{result.provider} · {result.status}</span>
+                  <div key={result.guestId} className="flex items-center justify-between rounded-[1.2rem] border border-slate-100 bg-slate-50/70 px-4 py-3 text-sm">
+                    <span className="font-medium text-slate-900">{result.name}</span>
+                    <span className="rounded-full bg-slate-900 px-3 py-1 text-xs text-white">{result.provider} · {result.status}</span>
                   </div>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Users className="size-5" /> Daftar Tamu</CardTitle>
-          <CardDescription>{guests.length} tamu terdaftar.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="py-10 text-center text-brown-light">Memuat tamu...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-sm">
-                <thead>
-                  <tr className="border-b border-gold/15 text-left text-brown-light">
-                    <th className="py-3 pr-3"><input type="checkbox" checked={allSelected} onChange={(event) => setSelectedGuestIds(event.target.checked ? guests.map((guest) => guest.id) : [])} /></th>
-                    <th>Nama</th>
-                    <th>WhatsApp</th>
-                    <th>Email</th>
-                    <th>Group</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {guests.map((guest) => (
-                    <tr key={guest.id} className="border-b border-gold/10">
-                      <td className="py-3 pr-3"><input type="checkbox" checked={selectedGuestIds.includes(guest.id)} onChange={(event) => setSelectedGuestIds((current) => event.target.checked ? [...current, guest.id] : current.filter((id) => id !== guest.id))} /></td>
-                      <td className="font-medium text-brown">{guest.name}</td>
-                      <td>{guest.phone || "-"}</td>
-                      <td>{guest.email || "-"}</td>
-                      <td>{guest.group || "-"}</td>
-                      <td><span className="rounded-full bg-brown/10 px-2 py-1 text-xs text-brown">{guest.status}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
+}
+
+function StatCard({ label, value, tone = "slate" }: { label: string; value: number; tone?: "slate" | "emerald" | "amber" }) {
+  const toneClass = { slate: "text-slate-900", emerald: "text-emerald-600", amber: "text-amber-500" }[tone];
+  return <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm"><CardContent className="p-6"><p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p><p className={`mt-4 text-4xl font-semibold ${toneClass}`}>{value}</p></CardContent></Card>;
 }

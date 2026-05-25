@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, Clock, Eye, Gift, Heart, ImageIcon, MapPin, MessageCircle, Music, Sparkles, Users } from "lucide-react";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Music, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { templateThemePresets } from "@/services/templateThemeService";
@@ -16,98 +18,94 @@ const features = [
   { icon: Gift, title: "Gift", desc: "Amplop digital dengan tampilan premium." },
 ];
 
-const steps = ["Pilih tema", "Isi data", "Preview", "Bagikan link"];
-
-const socialProof = [
-  { label: "Template Visual", value: "15+", desc: "Pilihan visual premium siap pakai" },
-  { label: "Fitur Inti", value: "10+", desc: "RSVP, gift, live, gallery, music" },
-  { label: "Flow Setup", value: "<10 Menit", desc: "Dari pilih tema sampai siap dibagikan" },
-  { label: "Target Device", value: "100% Mobile", desc: "Dioptimalkan untuk pengalaman tamu di ponsel" },
+const packages = [
+  { key: "free", label: "Free", price: "Rp0", desc: "Untuk mencoba flow dasar undangan digital." },
+  { key: "premium", label: "Premium", price: "Rp149K", desc: "Untuk wedding digital premium dengan fitur lengkap." },
+  { key: "pro", label: "Pro", price: "Rp299K", desc: "Untuk kebutuhan high-end dan operasional maksimal." },
 ];
-
-const useCases = [
-  {
-    title: "Untuk pasangan yang ingin setup sendiri",
-    desc: "Pilih tema, isi detail acara, upload foto, lalu publish tanpa perlu tim design atau developer.",
-  },
-  {
-    title: "Untuk vendor atau wedding organizer",
-    desc: "Admin bisa membuat template visual, lalu user/client tinggal memilih dan mengisi datanya sendiri.",
-  },
-  {
-    title: "Untuk undangan yang butuh interaksi lengkap",
-    desc: "Tamu bisa RSVP, mengirim ucapan, melihat live stream, membuka maps, dan memberi wedding gift dari satu halaman.",
-  },
-];
-
-const comparisons = [
-  { item: "Preview tema sebelum login", ceriona: true, manual: false },
-  { item: "Template visual + opening screen", ceriona: true, manual: false },
-  { item: "Guest management + WhatsApp", ceriona: true, manual: false },
-  { item: "RSVP, wishes, gift, live stream", ceriona: true, manual: false },
-  { item: "Dashboard user & admin terpisah", ceriona: true, manual: false },
-];
-
-const faqs = [
-  {
-    q: "Apakah user harus ngerti design?",
-    a: "Tidak. User cukup pilih tema yang sudah disediakan admin, lalu isi data undangan. Visual template akan mengikuti tema yang dipilih.",
-  },
-  {
-    q: "Apakah tema bisa dipreview dulu?",
-    a: "Bisa. User bisa preview tema langsung di website sebelum login, lalu klik Gunakan Tema Ini untuk lanjut ke flow create invitation.",
-  },
-  {
-    q: "Apakah tamu bisa RSVP dan kasih ucapan?",
-    a: "Bisa. Undangan publik sudah mendukung RSVP enhanced, live guest wishes, wedding gift, dan live streaming jika diaktifkan.",
-  },
-  {
-    q: "Apakah admin dan user dashboard-nya terpisah?",
-    a: "Ya. Sistem sudah punya dashboard user untuk setup undangan dan dashboard admin terpisah di slug /admin untuk mengelola platform.",
-  },
-  {
-    q: "Bagaimana sistem pesanan paket bekerja?",
-    a: "Saat user klik pilih paket di halaman billing, sistem membuat order baru ke database. Order itu masuk ke Riwayat Pesanan user dan bisa dikelola admin di admin billing orders.",
-  },
-];
-
-function buildUseThemeUrl(themeKey: string) {
-  const destination = `/dashboard/invitations/create?theme=${encodeURIComponent(themeKey)}`;
-  return `/register?next=${encodeURIComponent(destination)}`;
-}
 
 export default function HomePage() {
-  const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
+  const router = useRouter();
   const themes = useMemo(() => templateThemePresets.slice(0, 9), []);
+  const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState<{ session?: { id: string; status: string } } | null>(null);
+  const [paymentResult, setPaymentResult] = useState<{
+    order?: { id: string; plan: string; amount: number; status: string } | null;
+    nextStep?: string;
+    account?: { email: string; temporaryPassword?: string | null; verificationUrl?: string | null; existingAccount?: boolean };
+    emailDelivery?: { verification?: { delivered?: boolean; provider?: string }; account?: { delivered?: boolean; provider?: string } } | null;
+  } | null>(null);
+  const [form, setForm] = useState({
+    themeKey: themes[0]?.key ?? "",
+    groomName: "Rizky",
+    brideName: "Salsabila",
+    plan: "premium",
+    email: "",
+    phone: "",
+  });
+  const [photoMode, setPhotoMode] = useState(false);
+
+  const selectedTheme = themes.find((theme) => theme.key === form.themeKey) ?? themes[0];
   const previewTheme = themes.find((theme) => theme.key === previewThemeKey) ?? null;
+
+  const openWizard = (themeKey?: string, targetStep: 1 | 2 | 3 = 1) => {
+    if (themeKey) setForm((current) => ({ ...current, themeKey }));
+    setWizardOpen(true);
+    setStep(targetStep);
+    setCheckoutResult(null);
+    setPaymentResult(null);
+  };
+
+  const handlePrimaryCheckout = async () => {
+    setIsSubmitting(true);
+    try {
+      const checkout = checkoutResult?.session?.id ? checkoutResult : await axios.post("/api/checkout-sessions", form).then((response) => response.data);
+      setCheckoutResult(checkout);
+
+      const { data } = await axios.post(`/api/checkout-sessions/${checkout.session.id}/pay`);
+      setPaymentResult(data);
+
+      if (data.account?.email && data.account?.temporaryPassword) {
+        localStorage.setItem(
+          "pendingAuth",
+          JSON.stringify({
+            email: data.account.email,
+            password: data.account.temporaryPassword,
+            next: `/dashboard/invitations/create?theme=${encodeURIComponent(form.themeKey)}`,
+          })
+        );
+      }
+
+      if (data.order?.id) {
+        router.push(`/checkout/${data.order.id}`);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="overflow-hidden bg-[#fffaf4] text-[#241A16]">
+      {/* Hero */}
       <section className="relative min-h-screen px-4 pb-20 pt-24 sm:px-8 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(217,184,108,0.20),transparent_30%),radial-gradient(circle_at_85%_10%,rgba(201,133,140,0.16),transparent_28%)]" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_470px]">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl pt-8 lg:pt-14">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D9B86C]/30 bg-white/70 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-[#8A672D] backdrop-blur-xl">
               <Sparkles className="size-4" />
               Digital Invitation Platform
             </div>
-            <h1 className="font-serif text-5xl leading-[0.95] tracking-[-0.05em] text-[#241A16] sm:text-7xl lg:text-[6.5rem]">
-              Pilih tema undangan, preview langsung, lalu buat momenmu sendiri.
+            <h1 className="font-serif text-5xl leading-[0.95] tracking-[-0.05em] text-[#241A16] sm:text-7xl lg:text-[6.3rem]">
+              Pilih tema undangan, preview live, lalu lanjut ke paket dan checkout.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-8 text-[#6F5A4E] sm:text-lg">
-              Pengalaman seperti storefront tema premium: user datang, lihat preview undangan, pilih visual yang paling cocok, lalu lanjut setup setelah login.
+              Homepage tetap bersih. Semua aktivitas pemilihan tema, isi nama pasangan, pilih paket, dan checkout sekarang muncul di popup wizard premium.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="#themes" className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#241A16] px-7 text-sm font-semibold text-[#F6E7C8] shadow-2xl shadow-[#241A16]/20 transition hover:-translate-y-0.5 hover:bg-[#3A2A22]">
-                Pilih Tema Sekarang
-                <ArrowRight className="size-4" />
-              </a>
-              <Link href="/login" className="inline-flex h-13 items-center justify-center rounded-full border border-[#241A16]/15 bg-white/70 px-7 text-sm font-semibold text-[#241A16] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-[#241A16]/35">
-                Masuk ke Akun
-              </Link>
-            </div>
             <div className="mt-8 flex flex-wrap gap-4 text-sm text-[#6F5A4E]">
-              {["Tanpa coding", "Preview realtime", "Template siap pakai"].map((item) => (
+              {["Theme storefront", "Preview realtime", "Wizard dalam popup"].map((item) => (
                 <span key={item} className="inline-flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-[#B99A62]" />
                   {item}
@@ -115,76 +113,31 @@ export default function HomePage() {
               ))}
             </div>
             <div className="mt-10 grid max-w-2xl gap-4 sm:grid-cols-3">
-              <div className="rounded-3xl border border-[#241A16]/10 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#B99A62]">Tema</p>
-                <p className="mt-3 font-serif text-3xl text-[#241A16]">15+</p>
-                <p className="mt-1 text-sm text-[#6F5A4E]">Pilihan visual siap pakai</p>
-              </div>
-              <div className="rounded-3xl border border-[#241A16]/10 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#B99A62]">Flow</p>
-                <p className="mt-3 font-serif text-3xl text-[#241A16]">3 Step</p>
-                <p className="mt-1 text-sm text-[#6F5A4E]">Pilih, login, setup</p>
-              </div>
-              <div className="rounded-3xl border border-[#241A16]/10 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#B99A62]">Style</p>
-                <p className="mt-3 font-serif text-3xl text-[#241A16]">2026</p>
-                <p className="mt-1 text-sm text-[#6F5A4E]">Cinematic & immersive</p>
-              </div>
+              <InfoCard title="Tema" value={`${themes.length}+`} desc="Preview visual siap pakai" />
+              <InfoCard title="Flow" value="3 Step" desc="Pilih, preview, checkout" />
+              <InfoCard title="Mode" value="Popup" desc="Website tetap bersih" />
+            </div>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Button onClick={() => openWizard(undefined, 1)} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
+                Mulai Pilih Tema
+              </Button>
             </div>
           </div>
 
           <div className="relative mx-auto w-full max-w-[390px]">
-            <div className="absolute -inset-8 rounded-[3rem] bg-[#D9B86C]/20 blur-3xl" />
-            <div className="relative rounded-[3rem] border border-white/50 bg-[#120D0B] p-3 shadow-[0_40px_120px_-50px_rgba(36,26,22,0.9)]">
-              <div className="overflow-hidden rounded-[2.45rem] bg-gradient-to-b from-[#271812] to-[#080605] text-[#F7EBDD]">
-                <div className="relative flex min-h-[680px] flex-col justify-between p-7 text-center">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(217,184,108,0.34),transparent_34%)]" />
-                  <div className="absolute inset-5 rounded-[2rem] border border-[#D9B86C]/20" />
-                  <div className="relative">
-                    <p className="text-xs uppercase tracking-[0.35em] text-[#D9B86C]">The Wedding of</p>
-                    <h2 className="mt-8 font-serif text-6xl leading-none">Rizky<br />&<br />Salsa</h2>
-                    <p className="mt-6 text-sm text-white/60">Minggu, 21 Juni 2026</p>
-                  </div>
-                  <div className="relative grid grid-cols-4 gap-2 rounded-3xl border border-white/10 bg-white/10 p-3 backdrop-blur-xl">
-                    {["12", "08", "45", "22"].map((item, index) => (
-                      <div key={index} className="rounded-2xl bg-black/20 py-3">
-                        <p className="font-serif text-2xl text-[#D9B86C]">{item}</p>
-                        <p className="text-[10px] uppercase tracking-widest text-white/45">{["Hari", "Jam", "Min", "Det"][index]}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="relative rounded-full bg-[#D9B86C] px-6 py-3 text-sm font-semibold text-[#120D0B]">Lihat Undangan</button>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -left-16 bottom-12 hidden w-44 rounded-[1.8rem] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-xl lg:block">
-              <p className="text-xs uppercase tracking-[0.22em] text-[#B99A62]">Flow User</p>
-              <div className="mt-3 space-y-2 text-sm text-[#6F5A4E]">
-                <p>1. Preview tema</p>
-                <p>2. Gunakan tema</p>
-                <p>3. Login & setup</p>
-              </div>
-            </div>
+            <ThemePhonePreview theme={selectedTheme} groomName={form.groomName} brideName={form.brideName} />
           </div>
         </div>
       </section>
 
-      <section id="themes" className="px-4 py-20 sm:px-8 lg:px-16">
+      {/* Theme Storefront */}
+      <section className="px-4 py-20 sm:px-8 lg:px-16">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="mb-10 flex items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Pilih Tema</p>
               <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-6xl">Storefront tema yang bisa langsung dipreview.</h2>
             </div>
-            <Link href="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-[#8A672D]">
-              Sudah punya akun? Masuk <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="mb-6 flex flex-wrap gap-3 rounded-[2rem] border border-[#241A16]/10 bg-white/70 p-3 backdrop-blur-xl">
-            <span className="rounded-full bg-[#241A16] px-4 py-2 text-sm font-semibold text-[#F6E7C8]">Wedding</span>
-            <span className="rounded-full px-4 py-2 text-sm text-[#6F5A4E]">Custom</span>
-            <span className="rounded-full px-4 py-2 text-sm text-[#6F5A4E]">Tradisional</span>
-            <span className="rounded-full px-4 py-2 text-sm text-[#6F5A4E]">Modern</span>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {themes.map((theme) => (
@@ -210,16 +163,13 @@ export default function HomePage() {
                     <p className="mt-1 text-sm text-[#6F5A4E]">{theme.description}</p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#8A672D]">
-                    <Eye className="size-3.5" />
-                    Preview dulu sebelum lanjut login
+                    <Eye className="size-3.5" /> Preview dulu sebelum lanjut checkout
                   </div>
                   <div className="flex gap-3">
-                    <Button type="button" variant="outline" onClick={() => setPreviewThemeKey(theme.key)}>
-                      Preview
-                    </Button>
-                    <Link href={buildUseThemeUrl(theme.key)} className="inline-flex flex-1 items-center justify-center rounded-full bg-[#241A16] px-5 py-2 text-sm font-semibold text-[#F6E7C8] transition hover:bg-[#3A2A22]">
+                    <Button type="button" variant="outline" onClick={() => setPreviewThemeKey(theme.key)}>Preview</Button>
+                    <Button type="button" onClick={() => openWizard(theme.key, 2)} className="flex-1 bg-brown text-gold-light hover:bg-gold hover:text-brown">
                       Gunakan Tema Ini
-                    </Link>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -228,41 +178,16 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Features */}
       <section className="px-4 py-20 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-3 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Kenapa Ceriona</p>
-            <h2 className="font-serif text-4xl leading-tight sm:text-6xl">Lebih banyak informasi, lebih sedikit kebingungan.</h2>
-            <p className="mx-auto max-w-3xl text-sm leading-7 text-[#6F5A4E]">Landing page ini dirancang supaya user langsung paham alur: preview tema, login, setup undangan, lalu bagikan. Admin juga bisa mengelola template tanpa mengganggu flow user pemesan.</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {socialProof.map((item) => (
-              <div key={item.label} className="rounded-[2rem] border border-[#241A16]/10 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-[#B99A62]">{item.label}</p>
-                <p className="mt-3 font-serif text-4xl text-[#241A16]">{item.value}</p>
-                <p className="mt-2 text-sm leading-6 text-[#6F5A4E]">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-6 sm:px-8 lg:hidden">
-        <div className="fixed inset-x-4 bottom-4 z-40 rounded-full border border-[#241A16]/10 bg-white/90 p-2 shadow-2xl backdrop-blur-xl">
-          <a href="#themes" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#241A16] text-sm font-semibold text-[#F6E7C8]">
-            Pilih Tema & Mulai
-            <ArrowRight className="size-4" />
-          </a>
-        </div>
-      </section>
-
-      <section id="features" className="px-4 py-20 sm:px-8 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[2.5rem] bg-[#18110E] p-6 text-[#F7EBDD] sm:p-10 lg:p-14">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D9B86C]">Fitur</p>
               <h2 className="mt-4 font-serif text-4xl leading-tight sm:text-6xl">Semua kebutuhan undangan dalam satu dashboard.</h2>
-              <p className="mt-5 text-sm leading-7 text-white/55">Kelola template, data undangan, RSVP, gallery, musik, dan publish dari satu tempat.</p>
+              <p className="mt-5 text-sm leading-7 text-white/55">
+                Setelah checkout dan akun dibuat, user tinggal masuk ke portal untuk edit tema yang sudah dipilih, upload media, aktifkan RSVP, gift, dan live streaming.
+              </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {features.map((feature) => (
@@ -277,127 +202,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 py-20 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 xl:grid-cols-[0.95fr_1.05fr]">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Use Cases</p>
-              <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-6xl">Bukan cuma landing cantik, tapi flow produk yang jelas.</h2>
-              <p className="mt-5 text-sm leading-7 text-[#6F5A4E]">Sistem ini bisa dipakai oleh pasangan langsung, vendor, maupun admin internal yang ingin mengelola library template dan operasional undangan digital secara terstruktur.</p>
-            </div>
-            <div className="space-y-4">
-              {useCases.map((item, index) => (
-                <div key={item.title} className="rounded-[2rem] border border-[#241A16]/10 bg-white p-6 shadow-sm">
-                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#241A16] text-sm font-semibold text-[#F6E7C8]">
-                    {index + 1}
-                  </div>
-                  <h3 className="font-serif text-2xl text-[#241A16]">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-[#6F5A4E]">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-20 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Cara Kerja</p>
-          <h2 className="mt-3 font-serif text-4xl sm:text-6xl">Flow user dibuat sesingkat mungkin.</h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-4">
-            {steps.map((step, index) => (
-              <div key={step} className="rounded-3xl border border-[#241A16]/10 bg-white p-6 text-left shadow-sm">
-                <div className="mb-8 flex h-10 w-10 items-center justify-center rounded-full bg-[#241A16] text-sm font-semibold text-[#F6E7C8]">{index + 1}</div>
-                <h3 className="font-serif text-2xl">{step}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#6F5A4E]">Setiap langkah diarahkan agar user cepat sampai ke hasil tanpa bingung dengan pengaturan teknis.</p>
-                </div>
-              ))}
-            </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-20 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-7xl rounded-[2.5rem] border border-[#241A16]/10 bg-white/80 p-6 shadow-sm backdrop-blur-xl sm:p-10 lg:p-14">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Perbandingan</p>
-            <h2 className="mt-3 font-serif text-4xl sm:text-6xl">Kenapa flow ini lebih enak untuk user pemesan.</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-[#6F5A4E]">Alih-alih user langsung dilempar ke dashboard kosong, mereka bisa melihat visual tema dulu di landing page, lalu baru lanjut login dan setup. Ini membuat proses lebih natural dan conversion-friendly.</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#241A16]/10 text-[#6F5A4E]">
-                  <th className="py-4 pr-4">Fitur</th>
-                  <th className="py-4 pr-4">Ceriona</th>
-                  <th className="py-4">Flow Manual Biasa</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisons.map((row) => (
-                  <tr key={row.item} className="border-b border-[#241A16]/10">
-                    <td className="py-4 pr-4 font-medium text-[#241A16]">{row.item}</td>
-                    <td className="py-4 pr-4 text-[#8A672D]">{row.ceriona ? "Ya" : "Tidak"}</td>
-                    <td className="py-4 text-[#6F5A4E]">{row.manual ? "Ya" : "Tidak"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-20 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">Order Flow</p>
-            <h2 className="mt-3 font-serif text-4xl sm:text-6xl">Dari pilih paket sampai dikelola admin.</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-[#6F5A4E]">Landing page bukan hanya untuk lihat tema. User juga perlu paham bahwa setelah setup undangan, mereka bisa upgrade paket dan order itu akan masuk ke sistem admin untuk diproses.</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-4">
-            {[
-              ["1", "Pilih Paket", "User memilih Free, Premium, atau Pro di halaman billing."],
-              ["2", "Order Tercatat", "Sistem membuat order baru dan menyimpannya ke riwayat pesanan user."],
-              ["3", "Admin Proses", "Admin melihat order itu di admin billing orders dan mengubah status."],
-              ["4", "Plan Aktif", "Saat status menjadi paid, paket user dianggap aktif oleh sistem."],
-            ].map(([step, title, desc]) => (
-              <div key={title} className="rounded-[2rem] border border-[#241A16]/10 bg-white p-6 shadow-sm">
-                <div className="mb-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#241A16] text-sm font-semibold text-[#F6E7C8]">{step}</div>
-                <h3 className="font-serif text-2xl text-[#241A16]">{title}</h3>
-                <p className="mt-2 text-sm leading-7 text-[#6F5A4E]">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-24 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-5xl rounded-[2.5rem] bg-gradient-to-br from-[#241A16] to-[#0F0B09] p-8 text-center text-[#F7EBDD] sm:p-14">
-          <Users className="mx-auto mb-5 size-8 text-[#D9B86C]" />
-          <h2 className="font-serif text-4xl leading-tight sm:text-6xl">Sekarang tampilannya sudah fokus ke preview tema.</h2>
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/55">Preview dulu, lalu lanjut login untuk setup undangan dengan tema yang sudah kamu pilih.</p>
-          <a href="#themes" className="mt-8 inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#D9B86C] px-7 text-sm font-semibold text-[#140F0D] transition hover:-translate-y-0.5">
-            Pilih Tema <Heart className="size-4" />
-          </a>
-        </div>
-      </section>
-
-      <section className="px-4 pb-28 pt-4 sm:px-8 lg:px-16 lg:pb-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B99A62]">FAQ</p>
-            <h2 className="mt-3 font-serif text-4xl sm:text-6xl">Pertanyaan yang sering muncul.</h2>
-          </div>
-          <div className="space-y-4">
-            {faqs.map((item) => (
-              <div key={item.q} className="rounded-[2rem] border border-[#241A16]/10 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
-                <h3 className="font-serif text-2xl text-[#241A16]">{item.q}</h3>
-                <p className="mt-3 text-sm leading-7 text-[#6F5A4E]">{item.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
+      {/* Preview Dialog */}
       <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => !open && setPreviewThemeKey(null)}>
         <DialogContent className="max-w-5xl bg-[#120f0d] p-0 text-white">
           {previewTheme && (
@@ -410,23 +215,23 @@ export default function HomePage() {
                 <div className="overflow-hidden rounded-[28px] border border-white/10 p-6" style={{ background: previewTheme.preview, color: previewTheme.values.textColor }}>
                   <div className="rounded-[24px] border border-white/15 bg-white/15 p-6 text-center backdrop-blur-md">
                     <p className="text-xs uppercase tracking-[0.35em] opacity-60">{previewTheme.opening.eyebrow}</p>
-                    <h3 className="mt-5 font-serif text-6xl leading-none">Rizky & Salsabila</h3>
-                    <p className="mt-4 text-sm opacity-75">Minggu, 21 Juni 2026 · Jakarta</p>
-                    <div className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-3 md:grid-cols-4">
-                      {["12", "08", "45", "22"].map((item, index) => (
-                        <div key={index} className="rounded-2xl border border-white/15 bg-black/15 p-3">
-                          <p className="font-serif text-2xl">{item}</p>
-                          <p className="text-[10px] uppercase tracking-widest opacity-60">{["Hari", "Jam", "Min", "Det"][index]}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <h3 className="mt-5 font-serif text-6xl leading-none">{form.groomName} & {form.brideName}</h3>
+                    <p className="mt-4 text-sm opacity-75">Preview live sesuai nama yang kamu isi.</p>
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
                       <Button type="button" variant="outline" onClick={() => setPreviewThemeKey(null)} className="border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white">
                         Tutup Preview
                       </Button>
-                      <Link href={buildUseThemeUrl(previewTheme.key)} className="inline-flex items-center justify-center rounded-full bg-[#D9B86C] px-6 py-3 text-sm font-semibold text-[#140F0D] transition hover:-translate-y-0.5">
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setForm((current) => ({ ...current, themeKey: previewTheme.key }));
+                          setPreviewThemeKey(null);
+                          openWizard(previewTheme.key, 2);
+                        }}
+                        className="bg-[#D9B86C] text-[#140F0D] hover:bg-[#E4C67C]"
+                      >
                         Gunakan Tema Ini
-                      </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -435,6 +240,397 @@ export default function HomePage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ─── WIZARD DIALOG — FIXED ─── */}
+      <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
+        <DialogContent
+          className="overflow-hidden rounded-[2rem] border border-[#241A16]/10 bg-[#fffaf4] p-0 text-[#241A16] shadow-[0_40px_120px_-40px_rgba(36,26,22,0.45)]"
+          style={{
+            width: "min(96vw, 1280px)",
+            maxWidth: "min(96vw, 1280px)",
+            height: "90vh",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>Wizard Personalisasi Tema Undangan</DialogTitle>
+            <DialogDescription>Pilih tema, isi nama pasangan, lalu lanjutkan ke paket dan checkout.</DialogDescription>
+          </DialogHeader>
+
+          {/* Two-column grid — explicit pixel width so it never collapses */}
+          <div
+            style={{
+              display: "grid",
+                gridTemplateColumns: "480px 1fr",
+              flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
+            }}
+          >
+
+            {/* ── LEFT PANEL ── */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                borderRight: "1px solid rgba(36,26,22,0.10)",
+                background: "rgba(255,255,255,0.70)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+
+              {/* Step tabs */}
+              <div style={{ flexShrink: 0, padding: "20px 20px 0" }}>
+                <div className="flex gap-1.5 rounded-2xl bg-[#f5ede3] p-1.5">
+                  {([1, 2, 3] as const).map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setStep(item)}
+                      className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                        step === item ? "bg-brown text-gold-light shadow-sm" : "text-brown-light hover:text-brown"
+                      }`}
+                    >
+                      Step {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scrollable content */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.22 }}
+                  >
+
+                {/* Step 1 — Tema */}
+                {step === 1 && (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.26em] text-brown-light">Step 1</p>
+                      <h2 className="mt-1.5 font-serif text-3xl text-brown">Pilih Tema</h2>
+                      <p className="mt-1 text-sm leading-6 text-brown-light">
+                        Pilih visual theme yang paling cocok dengan karakter acara. Preview realtime tampil di kanan.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {themes.slice(0, 6).map((theme) => (
+                        <div
+                          key={theme.key}
+                          onClick={() => setForm((current) => ({ ...current, themeKey: theme.key }))}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setForm((current) => ({ ...current, themeKey: theme.key }));
+                            }
+                          }}
+                          className={`cursor-pointer overflow-hidden rounded-[1.3rem] border bg-white text-left transition ${
+                            form.themeKey === theme.key
+                              ? "border-brown ring-2 ring-brown/15"
+                              : "border-gold/15 hover:border-gold/40"
+                          }`}
+                        >
+                          <div className="h-24 p-3" style={{ background: theme.preview, color: theme.values.textColor }}>
+                            <div className="flex h-full items-end rounded-xl border border-white/15 bg-white/10 p-2.5 text-xs font-medium backdrop-blur-sm">
+                              {theme.label}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3">
+                            <div>
+                              <p className="text-xs font-medium text-brown">{theme.label}</p>
+                              <p className="text-[10px] capitalize text-brown-light">{theme.values.category}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-[10px]"
+                              onClick={(e) => { e.stopPropagation(); setPreviewThemeKey(theme.key); }}
+                            >
+                              <Eye className="size-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2 — Nama */}
+                {step === 2 && (
+                  <div className="space-y-4">
+                    <div className="rounded-[1.5rem] border border-gold/15 bg-gradient-to-br from-white to-cream/70 p-5 shadow-sm">
+                      <p className="text-xs uppercase tracking-[0.26em] text-brown-light">Step 2</p>
+                      <h2 className="mt-1.5 font-serif text-3xl text-brown">Lihat undangan dengan nama kamu & pasangan</h2>
+                      <p className="mt-2 text-sm leading-6 text-brown-light">
+                        Ketik nama mempelai pria dan wanita. Preview di kanan akan langsung berubah secara realtime. Kalau belum cocok, kamu bisa kembali ke step tema kapan saja.
+                      </p>
+                    </div>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-brown">Nama Mempelai Pria</span>
+                      <input
+                        value={form.groomName}
+                        onChange={(e) => setForm((current) => ({ ...current, groomName: e.target.value }))}
+                        className="input-premium"
+                          placeholder="Contoh: Rizky"
+                        />
+                    </label>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-brown">Nama Mempelai Wanita</span>
+                      <input
+                        value={form.brideName}
+                        onChange={(e) => setForm((current) => ({ ...current, brideName: e.target.value }))}
+                        className="input-premium"
+                          placeholder="Contoh: Salsabila"
+                        />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoMode((current) => !current)}
+                      className={`flex w-full items-center justify-between rounded-[1.3rem] border p-4 text-left transition ${photoMode ? "border-brown bg-brown text-gold-light" : "border-gold/15 bg-white"}`}
+                    >
+                      <div>
+                        <p className="font-medium">Mode tanpa foto</p>
+                        <p className={`mt-1 text-sm leading-6 ${photoMode ? "text-gold-light/75" : "text-brown-light"}`}>Cocok untuk user yang belum punya foto pre-wedding atau ingin preview lebih minimal.</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${photoMode ? "bg-gold text-brown" : "bg-cream text-brown-light"}`}>{photoMode ? "Aktif" : "Nonaktif"}</span>
+                    </button>
+                    <div className="rounded-[1.3rem] border border-gold/15 bg-white p-4 text-sm leading-6 text-brown-light">
+                      <p className="font-medium text-brown">Tips</p>
+                      <p className="mt-1">Gunakan nama panggilan yang ingin ditampilkan di cover undangan. Nama ini nanti bisa tetap diedit lagi di dashboard setelah akun aktif.</p>
+                    </div>
+                    <div className="rounded-[1.3rem] border border-gold/15 bg-white p-4 text-sm leading-6 text-brown-light">
+                      <p className="font-medium text-brown">Cocok? Gunakan tema ini</p>
+                      <p className="mt-1">Kalau preview di kanan sudah terasa pas, lanjut ke paket tanpa perlu pilih tema lagi dari awal.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3 — Paket */}
+                {step === 3 && (
+                  <div className="space-y-4">
+                    <div className="rounded-[1.5rem] border border-gold/15 bg-gradient-to-br from-white to-cream/70 p-5 shadow-sm">
+                      <p className="text-xs uppercase tracking-[0.26em] text-brown-light">Step 3</p>
+                      <h2 className="mt-1.5 font-serif text-3xl text-brown">Pilih Paket & Checkout</h2>
+                      <p className="mt-1 text-sm leading-6 text-brown-light">
+                        Pilih paket yang sesuai. Setelah ini sistem membuat checkout session, menyiapkan akun, dan melanjutkan user ke tahap pembayaran.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {packages.map((pkg) => (
+                        <button
+                          key={pkg.key}
+                          type="button"
+                          onClick={() => setForm((current) => ({ ...current, plan: pkg.key }))}
+                          className={`rounded-[1.3rem] border p-3.5 text-left transition ${
+                            form.plan === pkg.key
+                              ? "border-brown bg-brown text-gold-light shadow-lg"
+                              : "border-gold/15 bg-white hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-serif text-xl">{pkg.label}</p>
+                            {pkg.key === "premium" && <span className="rounded-full bg-white/15 px-2 py-1 text-[10px] uppercase tracking-[0.18em]">Best</span>}
+                          </div>
+                          <p className="mt-1.5 text-xs font-medium opacity-85">{pkg.price}</p>
+                          <p className="mt-1 text-[10px] leading-relaxed opacity-65">{pkg.desc}</p>
+                          <div className="mt-3 h-px w-full bg-current/10" />
+                          <p className="mt-3 text-[10px] uppercase tracking-[0.18em] opacity-55">{pkg.key === "free" ? "Trial" : pkg.key === "premium" ? "Recommended" : "Business"}</p>
+                        </button>
+                      ))}
+                    </div>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-brown">Email</span>
+                      <input
+                        value={form.email}
+                        onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
+                        className="input-premium"
+                        type="email"
+                        placeholder="nama@email.com"
+                      />
+                    </label>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-brown">Nomor HP</span>
+                      <input
+                        value={form.phone}
+                        onChange={(e) => setForm((current) => ({ ...current, phone: e.target.value }))}
+                        className="input-premium"
+                        placeholder="08xxxxxxxxxx"
+                      />
+                    </label>
+
+                  {paymentResult?.order && (
+                      <div className="space-y-3 rounded-[1.7rem] border border-green-200 bg-gradient-to-br from-green-50 to-white px-5 py-5 text-sm text-green-800 shadow-sm">
+                        <p className="text-xs uppercase tracking-[0.22em] text-green-700/70">Checkout Ready</p>
+                        <p className="font-serif text-2xl text-green-900">Pesanan berhasil dibuat</p>
+                        <p>Order ID: <span className="font-medium">{paymentResult.order.id}</span></p>
+                        <p>Status saat ini: <span className="font-medium uppercase">{paymentResult.order.status}</span></p>
+                        {paymentResult.account?.email && <p>Email tujuan akun: <span className="font-medium">{paymentResult.account.email}</span></p>}
+
+                        {paymentResult.order.status === "pending" && (
+                          <div className="rounded-2xl border border-green-200/60 bg-white/70 p-4 text-sm leading-6 text-green-900">
+                            <p className="font-medium">Langkah berikutnya</p>
+                            <p className="mt-2">Selesaikan pembayaran terlebih dahulu. Setelah pembayaran terkonfirmasi, sistem akan otomatis:</p>
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-green-900/90">
+                              <li>mengaktifkan akun user</li>
+                              <li>mengirim email verifikasi</li>
+                              <li>mengirim detail login dashboard</li>
+                              <li>membuat draft undangan dengan tema yang sudah dipilih</li>
+                            </ul>
+                            <p className="mt-4 text-xs text-green-700/80">Anda akan diarahkan otomatis ke halaman pembayaran.</p>
+                          </div>
+                        )}
+
+                        {paymentResult.order.status === "paid" && paymentResult.emailDelivery?.verification?.delivered && (
+                          <>
+                            <p>{paymentResult.account?.existingAccount ? "Akun Anda sudah ada. Link verifikasi terbaru dan instruksi login sudah dikirim ke email." : "Link verifikasi dan detail akun sudah dikirim ke email. Cek inbox untuk melanjutkan ke portal."}</p>
+                            <p className="text-xs text-green-700/80">Jika belum ada di inbox, cek folder spam atau promotions.</p>
+                          </>
+                        )}
+
+                        {paymentResult.order.status === "paid" && !paymentResult.emailDelivery?.verification?.delivered && (
+                          <>
+                            {paymentResult.account?.temporaryPassword && (
+                              <p>Password sementara: <span className="font-medium">{paymentResult.account.temporaryPassword}</span></p>
+                            )}
+                            {paymentResult.account?.verificationUrl && (
+                              <a className="font-medium underline" href={paymentResult.account.verificationUrl}>Buka verifikasi email</a>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Footer buttons — always visible at bottom */}
+              <div style={{ flexShrink: 0, borderTop: "1px solid rgba(36,26,22,0.10)", background: "rgba(255,255,255,0.80)", padding: "16px 20px", backdropFilter: "blur(8px)" }}>
+                <div className="flex gap-3">
+                  {step > 1 && (
+                    <Button variant="outline" onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}>
+                      Kembali
+                    </Button>
+                  )}
+                  {step < 3 ? (
+                    <Button
+                      onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3)}
+                      className="h-11 flex-1 rounded-full bg-brown text-gold-light hover:bg-gold hover:text-brown"
+                    >
+                      {step === 1 ? "Lanjut Isi Nama Pasangan" : "Lanjut Pilih Paket"}
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled={isSubmitting || !form.email || !form.phone || !form.groomName || !form.brideName}
+                      onClick={handlePrimaryCheckout}
+                      className="h-11 flex-1 rounded-full bg-brown text-gold-light hover:bg-gold hover:text-brown"
+                    >
+                      {isSubmitting ? "Menyiapkan Pembayaran..." : "Lanjut ke Pembayaran"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── RIGHT PANEL — Live Preview ── */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                background: "linear-gradient(160deg,#f7f1e8,#efe3d3)",
+                padding: "24px",
+              }}
+            >
+              <div className="mb-5 shrink-0 rounded-[1.3rem] border border-[#241A16]/10 bg-white/70 p-4 shadow-sm backdrop-blur-xl">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#B99A62]">Live Preview</p>
+                <h3 className="mt-1.5 font-serif text-2xl text-[#241A16]">{selectedTheme.label}</h3>
+                <p className="mt-1 text-sm leading-6 text-[#6F5A4E]">
+                  Preview mengikuti tema yang dipilih, nama pasangan, dan mode foto secara realtime.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#8A672D]">
+                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">{form.groomName}</span>
+                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">{form.brideName}</span>
+                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">{photoMode ? "Tanpa foto" : "Dengan foto"}</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <ThemePhonePreview theme={selectedTheme} groomName={form.groomName} brideName={form.brideName} photoMode={photoMode} />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
+  );
+}
+
+function InfoCard({ title, value, desc }: { title: string; value: string; desc: string }) {
+  return (
+    <div className="rounded-3xl border border-[#241A16]/10 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
+      <p className="text-xs uppercase tracking-[0.22em] text-[#B99A62]">{title}</p>
+      <p className="mt-3 font-serif text-3xl text-[#241A16]">{value}</p>
+      <p className="mt-1 text-sm text-[#6F5A4E]">{desc}</p>
+    </div>
+  );
+}
+
+function ThemePhonePreview({
+  theme,
+  groomName,
+  brideName,
+  photoMode = false,
+}: {
+  theme: (typeof templateThemePresets)[number];
+  groomName: string;
+  brideName: string;
+  photoMode?: boolean;
+}) {
+  return (
+    <div className="relative mx-auto w-full max-w-[420px] scale-[0.92] sm:scale-[0.96] xl:scale-100">
+      <div className="absolute -inset-8 rounded-[3rem] bg-[#D9B86C]/20 blur-3xl" />
+      <div className="relative rounded-[3rem] border border-white/50 bg-[#120D0B] p-3 shadow-[0_40px_120px_-50px_rgba(36,26,22,0.9)]">
+        <div className="overflow-hidden rounded-[2.45rem] text-[#F7EBDD]" style={{ background: theme.preview }}>
+          <div className="relative flex min-h-[640px] flex-col justify-between p-7 text-center">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.18),transparent_34%)]" />
+            <div className="absolute inset-5 rounded-[2rem] border border-white/20" />
+            <div className="absolute inset-x-10 top-10 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            {!photoMode && <div className="absolute inset-x-8 top-24 h-52 rounded-[2rem] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_60%)] blur-xl" />}
+            <div className="relative">
+              <p className="text-xs uppercase tracking-[0.35em] opacity-70">{theme.opening.eyebrow}</p>
+              <h2 className="mt-8 font-serif text-5xl leading-none">
+                {groomName}
+                <br />&<br />
+                {brideName}
+              </h2>
+              <p className="mt-6 text-sm opacity-70">{photoMode ? "Mode tanpa foto aktif" : "Preview realtime tema yang dipilih"}</p>
+            </div>
+            <div className="relative grid grid-cols-4 gap-2 rounded-3xl border border-white/10 bg-white/10 p-3 backdrop-blur-xl">
+              {["12", "08", "45", "22"].map((item, index) => (
+                <div key={index} className="rounded-2xl bg-black/15 py-3">
+                  <p className="font-serif text-2xl">{item}</p>
+                  <p className="text-[10px] uppercase tracking-widest opacity-60">{["Hari", "Jam", "Min", "Det"][index]}</p>
+                </div>
+              ))}
+            </div>
+            <button className="relative rounded-full bg-white/80 px-6 py-3 text-sm font-semibold text-[#120D0B]">
+              {theme.opening.buttonLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

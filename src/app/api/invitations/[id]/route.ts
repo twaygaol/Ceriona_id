@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
+import { canPublishInvitation } from "@/services/subscriptionService";
 
 const updateInvitationSchema = z.object({
   title: z.string().min(3).optional(),
@@ -91,6 +92,18 @@ export async function PUT(
     }
 
     const { gallery, googleMapsUrl, musicUrl, ...data } = parsed.data;
+
+    if (data.isPublished === true) {
+      const publishAccess = await canPublishInvitation(user.id);
+      if (!publishAccess.allowed) {
+        return NextResponse.json(
+          {
+            error: `Publish undangan membutuhkan subscription aktif. Paket Anda saat ini: ${publishAccess.plan.label}.`,
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     if (data.templateId) {
       const template = await prisma.template.findFirst({

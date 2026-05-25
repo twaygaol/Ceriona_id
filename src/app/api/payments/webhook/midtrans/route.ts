@@ -1,10 +1,11 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { provisionAccountAndInvitationFromCheckout } from "@/services/checkoutProvisioningService";
 import { activateSubscriptionFromOrder } from "@/services/subscriptionService";
 
 type BillingOrderDelegate = {
-  findFirst: (args: unknown) => Promise<{ id: string; userId: string; plan: string; amount: number; status: string } | null>;
+  findFirst: (args: unknown) => Promise<{ id: string; userId: string | null; plan: string; amount: number; status: string; checkoutSessionId?: string | null } | null>;
   update: (args: unknown) => Promise<unknown>;
 };
 
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
 
     const order = await billingOrder.findFirst({
       where: { id: body.order_id },
-      select: { id: true, userId: true, plan: true, amount: true, status: true },
+      select: { id: true, userId: true, plan: true, amount: true, status: true, checkoutSessionId: true },
     });
 
     if (!order) {
@@ -87,8 +88,19 @@ export async function POST(req: Request) {
     }
 
     if (normalizedStatus === "paid" && order.status !== "paid") {
+      let userId = order.userId;
+      if (order.checkoutSessionId) {
+        const provisioned = await provisionAccountAndInvitationFromCheckout(order.checkoutSessionId);
+        userId = provisioned.user.id;
+        if (!order.userId) {
+          await billingOrder.update({ where: { id: order.id }, data: { userId } });
+        }
+      }
+
       await billingOrder.update({ where: { id: order.id }, data: { status: "paid" } });
-      await activateSubscriptionFromOrder(order.userId, order.id, order.plan);
+      if (userId) {
+        await activateSubscriptionFromOrder(userId, order.id, order.plan);
+      }
     }
 
     if (normalizedStatus === "failed" || normalizedStatus === "expired") {

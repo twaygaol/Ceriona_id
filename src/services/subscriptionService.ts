@@ -63,6 +63,16 @@ export async function assertFeatureAccess(userId: string, feature: keyof ReturnT
   };
 }
 
+export async function canPublishInvitation(userId: string) {
+  const activeSubscription = await getActiveSubscription(userId);
+  const plan = getBillingPlan(activeSubscription?.plan ?? "free");
+  return {
+    allowed: activeSubscription?.status === "active",
+    plan,
+    subscription: activeSubscription,
+  };
+}
+
 export async function expireDueSubscriptions() {
   const now = new Date();
   const dueSubscriptions = await subscription.findMany({

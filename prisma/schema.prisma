@@ -25,6 +25,7 @@ model User {
   billingOrders BillingOrder[]
   subscriptions Subscription[]
   paymentTransactions PaymentTransaction[]
+  checkoutSessions CheckoutSession[]
 }
 
 model Invitation {
@@ -149,11 +150,12 @@ model BillingOrder {
   status        String    @default("pending") // pending, paid, cancelled
   paymentMethod String?   // bank_transfer, manual, gateway
   note          String?
+  checkoutSessionId String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
+  userId        String?
+  user          User?      @relation(fields: [userId], references: [id])
   paymentTransactions PaymentTransaction[]
 }
 
@@ -188,6 +190,23 @@ model PaymentTransaction {
 
   billingOrderId     String?
   billingOrder       BillingOrder? @relation(fields: [billingOrderId], references: [id])
+}
+
+model CheckoutSession {
+  id            String    @id @default(cuid())
+  themeKey      String
+  groomName     String
+  brideName     String
+  plan          String
+  email         String
+  phone         String
+  status        String    @default("draft") // draft, pending_payment, paid, completed, expired
+  userId        String?
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User?     @relation(fields: [userId], references: [id])
 }
 
 model EmailVerification {

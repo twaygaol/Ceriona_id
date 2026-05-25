@@ -93,7 +93,6 @@ export default function RegisterPage() {
         {verificationUrl && (
           <div className="mt-6 rounded-2xl border border-gold/20 bg-cream p-4 text-sm text-brown-light">
             <p className="font-medium text-brown">Verifikasi email terlebih dahulu</p>
-            <p className="mt-2 break-all">Link verifikasi: <a className="text-gold underline" href={verificationUrl}>{verificationUrl}</a></p>
             {accountInfo && (
               <div className="mt-4 rounded-xl bg-white p-3 text-left">
                 <p className="font-medium text-brown">Detail akun sementara</p>
@@ -108,7 +107,14 @@ export default function RegisterPage() {
                 <p className="mt-1">Email detail akun: {emailDelivery.account?.delivered ? `terkirim via ${emailDelivery.account.provider}` : "mode dev / belum terkirim"}</p>
               </div>
             )}
-            <button onClick={() => router.push(verificationUrl)} className="mt-4 rounded-full bg-brown px-4 py-2 text-xs font-semibold text-gold-light">Buka Link Verifikasi</button>
+            {emailDelivery?.verification?.delivered ? (
+              <p className="mt-4 text-xs text-brown-light">Silakan buka inbox email Anda untuk verifikasi akun dan lanjut ke dashboard.</p>
+            ) : (
+              <>
+                <p className="mt-2 break-all">Link verifikasi: <a className="text-gold underline" href={verificationUrl}>{verificationUrl}</a></p>
+                <button onClick={() => router.push(verificationUrl)} className="mt-4 rounded-full bg-brown px-4 py-2 text-xs font-semibold text-gold-light">Buka Link Verifikasi</button>
+              </>
+            )}
           </div>
         )}
 

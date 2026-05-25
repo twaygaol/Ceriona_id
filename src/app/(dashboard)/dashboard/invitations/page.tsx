@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useInvitationStore } from "@/store/useInvitationStore";
-import { Plus, Edit, Trash2, Copy, Eye, EyeOff } from "lucide-react";
+import { Copy, Edit, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function InvitationsPage() {
   const router = useRouter();
@@ -47,8 +48,15 @@ export default function InvitationsPage() {
       await axios.put(`/api/invitations/${id}`, { isPublished: !isPublished });
       publishInvitation(id);
       toast.success(!isPublished ? "Undangan dipublikasikan" : "Undangan ditutup");
-    } catch {
-      toast.error("Gagal mengubah status");
+    } catch (error) {
+      if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
+        toast.error(error.response.data.error);
+        if (error.response.status === 403) {
+          router.push("/dashboard/billing");
+        }
+      } else {
+        toast.error("Gagal mengubah status");
+      }
     }
   };
 
@@ -59,90 +67,57 @@ export default function InvitationsPage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-20">Memuat data...</div>;
+    return <div className="py-20 text-center text-slate-500">Memuat undangan...</div>;
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-brown">Kelola Undangan</h1>
-          <p className="text-brown-light mt-1">Buat dan kelola semua undangan digital Anda</p>
+          <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Undangan Saya</p>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-900">Kelola undangan digital dengan lebih rapi</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-500">Buat, edit, publish, dan pantau progress undangan dari satu halaman yang lebih clean dan profesional.</p>
         </div>
-        <Link
-          href={`${routeBase}/create`}
-          className="flex items-center gap-2 px-4 py-2 bg-brown text-gold-light rounded-lg hover:bg-gold hover:text-brown transition-colors"
-        >
-          <Plus size={18} />
-          <span>Buat Undangan</span>
+        <Link href={`${routeBase}/create`} className="inline-flex items-center gap-2 rounded-full bg-[#0f172a] px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+          <Plus className="size-4" /> Buat Undangan
         </Link>
       </div>
 
       {invitations.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-lg border border-gold/20">
-          <p className="text-brown-light mb-4">Belum ada undangan</p>
-          <Link href={`${routeBase}/create`} className="text-gold hover:text-gold-dark">
-            Buat undangan pertama Anda →
-          </Link>
-        </div>
+        <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+          <CardContent className="py-20 text-center">
+            <p className="text-sm text-slate-500">Belum ada undangan aktif di akun Anda.</p>
+            <Link href={`${routeBase}/create`} className="mt-5 inline-flex rounded-full bg-[#0f172a] px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">Buat Undangan Pertama</Link>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4">
           {invitations.map((invitation) => (
-            <div
-              key={invitation.id}
-              className="bg-white rounded-lg border border-gold/20 p-4 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h3 className="font-serif text-xl text-brown">
-                    {invitation.brideName} & {invitation.groomName}
-                  </h3>
-                  <p className="text-sm text-brown-light mt-1">
-                    Template: {invitation.templateId} | 
-                    Tanggal: {new Date(invitation.eventDate).toLocaleDateString("id-ID")}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${invitation.isPublished ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                      {invitation.isPublished ? "Published" : "Draft"}
-                    </span>
-                    <span className="text-xs text-brown-light">
-                      {invitation.rsvps?.length || 0} RSVP
-                    </span>
+            <Card key={invitation.id} className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                  <div>
+                    <h2 className="font-serif text-3xl text-slate-900">{invitation.brideName} & {invitation.groomName}</h2>
+                    <p className="mt-2 text-sm text-slate-500">Tanggal acara: {new Date(invitation.eventDate).toLocaleDateString("id-ID")} · Template ID: {invitation.templateId}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${invitation.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{invitation.isPublished ? "Published" : "Draft"}</span>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{invitation.rsvps?.length || 0} RSVP</span>
+                      {!invitation.isPublished && <span className="rounded-full bg-[#D9B86C]/15 px-3 py-1 text-xs font-medium text-[#8A672D]">Publish butuh paket aktif</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button onClick={() => copyLink(invitation.slug)} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300"><Copy className="size-4" /> Copy Link</button>
+                    <button onClick={() => router.push(`${routeBase}/edit/${invitation.id}`)} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300"><Edit className="size-4" /> Edit</button>
+                    <button onClick={() => handlePublish(invitation.id, invitation.isPublished)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${invitation.isPublished ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-[#0f172a] text-white hover:bg-slate-800"}`}>
+                      {invitation.isPublished ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      {invitation.isPublished ? "Unpublish" : "Publish"}
+                    </button>
+                    <button onClick={() => handleDelete(invitation.id)} className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"><Trash2 className="size-4" /> Hapus</button>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => copyLink(invitation.slug)}
-                    className="p-2 text-brown-light hover:text-gold transition-colors"
-                    title="Salin link"
-                  >
-                    <Copy size={18} />
-                  </button>
-                  <button
-                    onClick={() => router.push(`${routeBase}/edit/${invitation.id}`)}
-                    className="p-2 text-brown-light hover:text-gold transition-colors"
-                    title="Edit"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => handlePublish(invitation.id, invitation.isPublished)}
-                    className="p-2 text-brown-light hover:text-gold transition-colors"
-                    title={invitation.isPublished ? "Tutup" : "Publikasikan"}
-                  >
-                    {invitation.isPublished ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(invitation.id)}
-                    className="p-2 text-brown-light hover:text-red-500 transition-colors"
-                    title="Hapus"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
