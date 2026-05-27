@@ -126,4 +126,64 @@
     0%, 100% { opacity: 0.4; transform: scaleY(1); }
     50% { opacity: 1; transform: scaleY(0.8); }
   }
+
+  .javanese-keraton-pattern {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 8px,
+        rgba(214, 169, 79, 0.06) 8px,
+        rgba(214, 169, 79, 0.06) 10px,
+        transparent 10px,
+        transparent 24px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 16px,
+        rgba(214, 169, 79, 0.04) 16px,
+        rgba(214, 169, 79, 0.04) 18px,
+        transparent 18px,
+        transparent 32px
+      );
+  }
+
+  .javanese-keraton-pattern::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 25% 25%, rgba(214, 169, 79, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .jawa-classic-pattern {
+    background-image:
+      repeating-linear-gradient(
+        -45deg,
+        transparent 0px,
+        transparent 12px,
+        rgba(201, 166, 70, 0.05) 12px,
+        rgba(201, 166, 70, 0.05) 13px,
+        transparent 13px,
+        transparent 28px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        transparent 0px,
+        transparent 12px,
+        rgba(79, 132, 94, 0.04) 12px,
+        rgba(79, 132, 94, 0.04) 13px,
+        transparent 13px,
+        transparent 28px
+      );
+  }
+
+  .jawa-classic-pattern::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 75% 25%, rgba(201, 166, 70, 0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
 }

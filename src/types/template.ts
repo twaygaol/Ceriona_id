@@ -16,6 +16,13 @@ export const templateSections = [
 ] as const;
 
 export type TemplateSection = (typeof templateSections)[number];
+export interface TemplateOrnaments {
+  headerSvg?: string;
+  dividerSvg?: string;
+  footerSvg?: string;
+  cornerSvg?: string;
+  patternClass?: string;
+}
 
 export interface TemplateColors {
   primary?: string;
@@ -28,6 +35,12 @@ export interface TemplateFonts {
   heading?: string;
   body?: string;
 }
+export interface TemplateOpening {
+  eyebrow?: string;
+  buttonLabel?: string;
+  ornament?: string;
+  backgroundImage?: string;
+}
 
 export interface TemplateLayout {
   sections?: TemplateSection[];
@@ -39,6 +52,8 @@ export interface TemplateLayout {
   };
   colors?: TemplateColors;
   fonts?: TemplateFonts;
+  ornaments?: TemplateOrnaments;
+  opening?: TemplateOpening;
 }
 
 export interface TemplateStyles {

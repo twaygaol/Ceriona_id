@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Check, Copy, Palette, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { FloatingMusicButton } from "@/components/ui/FloatingMusicButton";
@@ -93,6 +94,13 @@ export function DynamicTemplate({ templateId, invitation }: DynamicTemplateProps
           fonts: {
             heading: activeTheme.values.headingFont,
             body: activeTheme.values.bodyFont,
+          },
+          opening: {
+            ...template.layout.opening,
+            eyebrow: activeTheme.opening.eyebrow,
+            buttonLabel: activeTheme.opening.buttonLabel,
+            ornament: activeTheme.opening.ornament,
+            backgroundImage: activeTheme.opening.backgroundImage,
           },
         },
         styles: {
@@ -258,17 +266,30 @@ function OpeningGate({ invitation, template, onOpen }: { invitation: InvitationD
   const colors = template.layout.colors ?? {};
   const theme = getTemplateTheme(template.layout.visualTheme);
   const gradient = template.layout.backgroundGradient;
+  const bgImage = template.layout.opening?.backgroundImage;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden px-5 text-center"
       style={{
-        background: gradient?.from && gradient?.to
-          ? `radial-gradient(circle at 50% 18%, ${colors.secondary || "#D9B86C"}40, transparent 34%), linear-gradient(155deg, ${gradient.from}, ${gradient.to})`
-          : `linear-gradient(155deg, ${colors.primary || "#120D0B"}, #070605)`,
+        background: bgImage
+          ? `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.55))`
+          : gradient?.from && gradient?.to
+            ? `radial-gradient(circle at 50% 18%, ${colors.secondary || "#D9B86C"}40, transparent 34%), linear-gradient(155deg, ${gradient.from}, ${gradient.to})`
+            : `linear-gradient(155deg, ${colors.primary || "#120D0B"}, #070605)`,
         color: colors.text || "#F7EBDD",
       }}
     >
+      {bgImage && (
+        <Image
+          src={bgImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="scale-105 object-cover opacity-50"
+        />
+      )}
       <div className="absolute inset-6 rounded-[2.5rem] border border-white/10" />
       <div className="absolute inset-10 rounded-[2rem] border border-[#D9B86C]/20" />
       {theme.opening.ornament === "royal" && (

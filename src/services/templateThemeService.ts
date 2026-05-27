@@ -24,7 +24,15 @@ export interface TemplateThemePreset {
     eyebrow: string;
     buttonLabel: string;
     ornament: "royal" | "floral" | "minimal";
+    backgroundImage?: string;
   };
+  ornaments?: {
+  headerSvg?: string;   
+  footerSvg?: string;   
+  dividerSvg?: string;  
+  cornerSvg?: string;   
+  patternClass?: string;
+};
 }
 
 export const templateThemePresets: TemplateThemePreset[] = [
@@ -52,6 +60,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "The Wedding Of",
       buttonLabel: "Lihat Undangan",
       ornament: "royal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -78,6 +87,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "The Wedding Of",
       buttonLabel: "Buka Undangan",
       ornament: "floral",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -104,6 +114,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Wedding Invitation",
       buttonLabel: "View Invitation",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -130,6 +141,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Premiere Invitation",
       buttonLabel: "Play Undangan",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -156,6 +168,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Social Invitation",
       buttonLabel: "Lihat Undangan",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -182,6 +195,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Now Live",
       buttonLabel: "Open Invite",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -205,10 +219,127 @@ export const templateThemePresets: TemplateThemePreset[] = [
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
+      eyebrow: "selamat Berbahagia",
+      buttonLabel: "Mlebet Undangan",
+      ornament: "royal",
+      backgroundImage: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <image
+    href="/ornament/header.jpg"
+    width="800"
+    height="400"
+    preserveAspectRatio="xMidYMid slice"
+  />
+</svg>`,
+    },
+    ornaments: {
+  headerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <image
+    href="/ornament/header.jpg"
+    width="800"
+    height="400"
+    preserveAspectRatio="xMidYMid slice"
+  />
+</svg>`,
+
+  dividerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 24" preserveAspectRatio="none">
+    <path d="M0 12 C50 2 90 22 140 12 C190 2 230 22 320 12"
+      fill="none"
+      stroke="#C9A646"
+      stroke-width="1"
+      opacity="0.7"
+    />
+    <circle cx="160" cy="12" r="3" fill="#C9A646"/>
+  </svg>`,
+
+  footerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 50" preserveAspectRatio="none">
+    <path d="M0 24 C120 42 210 8 340 24 C470 40 560 8 800 24"
+      fill="none"
+      stroke="#C9A646"
+      stroke-width="0.8"
+      opacity="0.45"
+    />
+    <g fill="#C9A646" opacity="0.45">
+      <circle cx="260" cy="24" r="2.5"/>
+      <circle cx="400" cy="24" r="3.5"/>
+      <circle cx="540" cy="24" r="2.5"/>
+    </g>
+  </svg>`,
+
+  cornerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90">
+    <path d="M0 0 H70" stroke="#C9A646" stroke-width="0.8" opacity="0.45"/>
+    <path d="M0 0 V70" stroke="#C9A646" stroke-width="0.8" opacity="0.45"/>
+    <path d="M12 12 C28 14 40 26 42 42 C26 40 14 28 12 12Z"
+      fill="#C9A646"
+      opacity="0.13"
+    />
+    <circle cx="16" cy="16" r="3.5" fill="#C9A646" opacity="0.5"/>
+  </svg>`,
+
+  patternClass: "jawa-classic-luxury-pattern",
+},
+  },
+  {
+    key: "adat-jawa-classic-luxury",
+    label: "Adat Jawa Classic Luxury",
+    description: "Tema adat Jawa mewah dengan cream ivory, sage green, gold, dan nuansa keraton modern.",
+    preview: "radial-gradient(circle at 50% 18%,rgba(201,166,70,0.25),transparent 34%),linear-gradient(145deg,#F8F1DE,#E8DFC8 55%,#D4CBB4)",
+    values: {
+      primaryColor: "#4F845E",
+      secondaryColor: "#C9A646",
+      backgroundColor: "#F8F1DE",
+      textColor: "#5B4A2D",
+      gradientFrom: "#F8F1DE",
+      gradientTo: "#E8DFC8",
+      headingFont: "Cormorant Garamond",
+      bodyFont: "DM Sans",
+      buttonStyle: "rounded",
+      borderRadius: "24px",
+      isPremium: true,
+      category: "wedding",
+    },
+    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
+    opening: {
       eyebrow: "Pawiwahan",
       buttonLabel: "Mlebet Undangan",
       ornament: "royal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
+    ornaments: {
+    headerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 90" preserveAspectRatio="none">
+      <rect width="800" height="90" fill="#F8F1DE" opacity="0"/>
+      <path d="M0 72 C140 30 260 110 400 55 C540 0 660 80 800 32" fill="none" stroke="#C9A646" stroke-width="0.8" opacity="0.5"/>
+      <g fill="#C9A646" opacity="0.35">
+        <path d="M400 14 L430 58 L400 76 L370 58 Z"/>
+        <circle cx="400" cy="50" r="8" fill="#F8F1DE" opacity="0.5"/>
+      </g>
+    </svg>`,
+
+    dividerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 36" preserveAspectRatio="none">
+      <path d="M0 18 H330" stroke="#C9A646" stroke-width="0.6" opacity="0.5"/>
+      <path d="M470 18 H800" stroke="#C9A646" stroke-width="0.6" opacity="0.5"/>
+      <path d="M400 4 C425 18 425 18 400 32 C375 18 375 18 400 4Z" fill="#C9A646" opacity="0.5"/>
+      <circle cx="400" cy="18" r="4" fill="#4F845E" opacity="0.4"/>
+    </svg>`,
+
+    footerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 80" preserveAspectRatio="none">
+      <rect width="800" height="80" fill="#4F845E" opacity="0.95"/>
+      <path d="M0 18 C120 58 260 0 400 38 C540 76 680 18 800 54" fill="none" stroke="#C9A646" stroke-width="0.8" opacity="0.45"/>
+      <g fill="#C9A646" opacity="0.3">
+        <circle cx="160" cy="42" r="3"/>
+        <circle cx="320" cy="28" r="3"/>
+        <circle cx="480" cy="52" r="3"/>
+        <circle cx="640" cy="34" r="3"/>
+      </g>
+    </svg>`,
+
+    cornerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90">
+      <path d="M0 0 H90 V8 H8 V90 H0Z" fill="#C9A646" opacity="0.35"/>
+      <circle cx="16" cy="16" r="4" fill="#C9A646" opacity="0.4"/>
+      <path d="M24 24 L44 44 L24 64 Z" fill="none" stroke="#C9A646" stroke-width="0.6" opacity="0.4"/>
+    </svg>`,
+
+    patternClass: "jawa-classic-pattern",
+  },
   },
   {
     key: "adat-batak-ulos",
@@ -217,10 +348,10 @@ export const templateThemePresets: TemplateThemePreset[] = [
     preview: "linear-gradient(145deg,#130707,#8B1E1E 46%,#111111 72%,#F5EFE3)",
     values: {
       primaryColor: "#151010",
-      secondaryColor: "#B91C1C",
+      secondaryColor: "#000000",
       backgroundColor: "#F7EFE4",
       textColor: "#211715",
-      gradientFrom: "#8B1E1E",
+      gradientFrom: "#000000",
       gradientTo: "#111111",
       headingFont: "Playfair Display",
       bodyFont: "Poppins",
@@ -234,6 +365,67 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Horas Invitation",
       buttonLabel: "Buka Undangan",
       ornament: "royal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
+    },
+    ornaments: {
+      headerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 80" preserveAspectRatio="none">
+        <rect width="800" height="80" fill="#151010"/>
+        <line x1="0" y1="8" x2="800" y2="8" stroke="#B91C1C" stroke-width="1.5"/>
+        <line x1="0" y1="72" x2="800" y2="72" stroke="#B91C1C" stroke-width="1.5"/>
+        <g fill="#B91C1C" opacity="0.85">
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<polygon points="${x},16 ${x+8},16 ${x+8},32 ${x},32" opacity="${i%2===0?'1':'0.4'}"/>
+                    <polygon points="${x},48 ${x+8},48 ${x+8},64 ${x},64" opacity="${i%2===0?'0.4':'1'}"/>`;
+          }).join('')}
+        </g>
+        <g fill="none" stroke="#C9A84C" stroke-width="0.8" opacity="0.6">
+          ${Array.from({length: 26}, (_, i) => {
+            const x = i * 32 + 8;
+            return `<rect x="${x-5}" y="37" width="10" height="10" transform="rotate(45,${x},42)"/>`;
+          }).join('')}
+        </g>
+      </svg>`,
+
+      dividerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 32" preserveAspectRatio="none">
+        <g fill="#B91C1C">
+          ${Array.from({length: 100}, (_, i) => {
+            const x = i * 8;
+            return `<polygon points="${x},0 ${x+4},0 ${x+4},16 ${x},16" opacity="${i%2===0?'0.9':'0.3'}"/>
+                    <polygon points="${x},16 ${x+4},16 ${x+4},32 ${x},32" opacity="${i%2===0?'0.3':'0.9'}"/>`;
+          }).join('')}
+        </g>
+        <line x1="0" y1="16" x2="800" y2="16" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>
+      </svg>`,
+
+      footerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+        <rect width="800" height="60" fill="#151010"/>
+        <line x1="0" y1="6" x2="800" y2="6" stroke="#B91C1C" stroke-width="1.5"/>
+        <g fill="#B91C1C" opacity="0.7">
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<polygon points="${x+8},10 ${x+16},28 ${x},28"/>`;
+          }).join('')}
+        </g>
+        <g fill="none" stroke="#C9A84C" stroke-width="0.6" opacity="0.5">
+          ${Array.from({length: 26}, (_, i) => {
+            const x = i * 32 + 8;
+            return `<rect x="${x-4}" y="38" width="8" height="8" transform="rotate(45,${x},42)"/>`;
+          }).join('')}
+        </g>
+        <line x1="0" y1="54" x2="800" y2="54" stroke="#B91C1C" stroke-width="1.5"/>
+      </svg>`,
+
+      cornerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+        <path d="M0,0 L60,0 L0,60 Z" fill="#B91C1C" opacity="0.12"/>
+        <path d="M0,0 L40,0 L0,40 Z" fill="#B91C1C" opacity="0.18"/>
+        <path d="M0,0 L20,0 L0,20 Z" fill="#B91C1C" opacity="0.3"/>
+        <line x1="0" y1="0" x2="60" y2="0" stroke="#C9A84C" stroke-width="1" opacity="0.6"/>
+        <line x1="0" y1="0" x2="0" y2="60" stroke="#C9A84C" stroke-width="1" opacity="0.6"/>
+        <rect x="2" y="2" width="8" height="8" transform="rotate(45,6,6)" fill="#C9A84C" opacity="0.5"/>
+      </svg>`,
+
+      patternClass: "batak-ulos-pattern",
     },
   },
   {
@@ -260,6 +452,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Luxury Wedding",
       buttonLabel: "Enter Invitation",
       ornament: "royal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -286,6 +479,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Garden Wedding",
       buttonLabel: "Buka Undangan",
       ornament: "floral",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -312,6 +506,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Sunset Wedding",
       buttonLabel: "Open Invitation",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {
@@ -338,6 +533,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       eyebrow: "Modern Wedding",
       buttonLabel: "View Invitation",
       ornament: "minimal",
+      backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
   },
   {

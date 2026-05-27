@@ -94,6 +94,13 @@ export function Template001({ templateId, invitation }: Template001Props) {
             heading: activeTheme.values.headingFont,
             body: activeTheme.values.bodyFont,
           },
+          opening: {
+            ...template.layout.opening,
+            eyebrow: activeTheme.opening.eyebrow,
+            buttonLabel: activeTheme.opening.buttonLabel,
+            ornament: activeTheme.opening.ornament,
+            backgroundImage: activeTheme.opening.backgroundImage,
+          },
         },
         styles: {
           ...(template.styles ?? {}),

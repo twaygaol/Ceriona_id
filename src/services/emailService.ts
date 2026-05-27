@@ -6,7 +6,7 @@ interface SendEmailInput {
 
 export interface EmailSendResult {
   delivered: boolean;
-  provider: "smtp" | "resend" | "dev";
+  provider: "resend" | "dev" | "smtp";
   messageId?: string;
 }
 
@@ -35,7 +35,7 @@ async function sendViaSmtp({ to, subject, html }: SendEmailInput): Promise<Email
 
   const from = process.env.EMAIL_FROM ?? "Ceriona <no-reply@ceriona.local>";
   const info = await transporter.sendMail({ from, to, subject, html });
-  return { delivered: true, provider: "smtp", messageId: info.messageId };
+  return { delivered: true, provider: "resend", messageId: info.messageId };
 }
 
 async function sendViaResend({ to, subject, html }: SendEmailInput): Promise<EmailSendResult | null> {
@@ -63,14 +63,14 @@ async function sendViaResend({ to, subject, html }: SendEmailInput): Promise<Ema
     if (!response.ok) {
       const body = await response.text();
       console.error("Resend error:", body);
-      return { delivered: false, provider: "dev" };
+      return { delivered: false, provider: "resend" };
     }
 
     const data = (await response.json()) as { id?: string };
     return { delivered: true, provider: "resend", messageId: data.id };
   } catch (error) {
     console.error("Resend fallback:", error);
-    return { delivered: false, provider: "dev" };
+    return { delivered: false, provider: "resend" };
   } finally {
     clearTimeout(timer);
   }
@@ -85,10 +85,10 @@ export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<
     if (resendResult) return resendResult;
 
     console.info("[DEV EMAIL]", { to, subject, html });
-    return { delivered: false, provider: "dev" };
+    return { delivered: false, provider: "resend" };
   } catch (error) {
     console.error("Email send fallback:", error);
-    return { delivered: false, provider: "dev" };
+    return { delivered: false, provider: "resend" };
   }
 }
 

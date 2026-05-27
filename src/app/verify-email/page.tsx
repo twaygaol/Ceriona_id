@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { signIn } from "next-auth/react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [email, setEmail] = useState<string | null>(null);
@@ -52,5 +52,13 @@ export default function VerifyEmailPage() {
         <Link href="/login" className="mt-6 inline-flex rounded-full bg-brown px-6 py-3 text-sm font-semibold text-gold-light">Masuk ke Akun</Link>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-brown-light">Memverifikasi...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
