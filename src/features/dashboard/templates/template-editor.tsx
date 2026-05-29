@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
@@ -379,6 +379,8 @@ export function TemplateEditor({ mode, initialTemplate }: TemplateEditorProps) {
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const [colorHistory, setColorHistory] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("desktop");
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
@@ -597,31 +599,35 @@ export function TemplateEditor({ mode, initialTemplate }: TemplateEditorProps) {
   const bodyPreview = getFontClass(values.bodyFont);
 
   return (
-    <div className={cn("space-y-6", cormorant.variable, dmSans.variable, playfair.variable, inter.variable, montserrat.variable, poppins.variable, greatVibes.variable)}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.28em] text-brown-light">Template Studio</p>
-          <h1 className="font-serif text-3xl text-brown">{mode === "create" ? "Buat Template Baru" : "Edit Template"}</h1>
-          <p className="mt-1 text-sm text-brown-light">Flow baru yang lebih cepat untuk desain, layout, preview, dan publish.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-gold/15 bg-white/70 px-4 py-3 shadow-sm backdrop-blur">
-          <span className="text-sm text-brown-light">{lastSavedAt ? `Saved ${lastSavedAt}` : "Belum pernah disimpan"}</span>
-          <Button type="button" variant="outline" onClick={() => void submitForm("draft")} disabled={isSaving}>
-            Save as Draft
-          </Button>
-          <Button type="button" variant="outline" onClick={() => void submitForm("continue")} disabled={isSaving}>
-            <Save className="size-4" />
-            Save & Continue
-          </Button>
-          <Button type="submit" form="template-editor-form" disabled={isSaving} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
-            {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <WandSparkles className="size-4" />}
-            Publish
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="space-y-6">
+    <div className={cn("flex h-full overflow-hidden", cormorant.variable, dmSans.variable, playfair.variable, inter.variable, montserrat.variable, poppins.variable, greatVibes.variable)}>
+      <AnimatePresence>
+        {sidebarVisible && (
+          <motion.div
+            initial={{ width: 0, opacity: 0, minWidth: 0 }}
+            animate={{ width: "auto", opacity: 1, minWidth: 500 }}
+            exit={{ width: 0, opacity: 0, minWidth: 0 }}
+            transition={{ duration: 0.25 }}
+            className="flex flex-col overflow-y-auto border-r border-gold/15 bg-white/50 backdrop-blur-xl"
+          >
+            <div className="sticky top-0 z-10 border-b border-gold/15 bg-white/80 px-5 py-3 backdrop-blur-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-brown-light">Template Studio</p>
+                  <h1 className="font-serif text-xl text-brown">{mode === "create" ? "Buat Template Baru" : "Edit Template"}</h1>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-brown-light">{lastSavedAt ? `Saved ${lastSavedAt}` : ""}</span>
+                  <Button type="button" size="sm" variant="outline" onClick={() => void submitForm("draft")} disabled={isSaving}>
+                    Save Draft
+                  </Button>
+                  <Button type="submit" form="template-editor-form" size="sm" disabled={isSaving} className="bg-brown text-gold-light hover:bg-gold hover:text-brown">
+                    {isSaving ? <LoaderCircle className="size-3 animate-spin" /> : <WandSparkles className="size-3" />}
+                    Publish
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-5 p-5">
           <Card className="border-gold/15 bg-white/75 shadow-[0_20px_60px_-40px_rgba(74,55,40,0.5)] backdrop-blur-xl">
             <CardHeader>
               <CardTitle>Stepper</CardTitle>
@@ -1007,17 +1013,66 @@ export function TemplateEditor({ mode, initialTemplate }: TemplateEditorProps) {
             </div>
           </form>
         </div>
+      </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="xl:sticky xl:top-6 xl:self-start">
-          <Card className="overflow-hidden border-gold/15 bg-[#120f0d] text-white shadow-[0_30px_90px_-50px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="text-white">Live Preview</CardTitle>
-              <CardDescription className="text-white/60">Perubahan warna, font, dan section tampil langsung tanpa reload.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemplatePreview values={values} sections={selectedSections} />
-            </CardContent>
-          </Card>
+      <div className="flex flex-1 flex-col bg-[#0D0D0D]">
+        {/* Preview Toolbar */}
+        <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setSidebarVisible((v) => !v)}
+              className="rounded-lg p-2 text-xs text-white/40 transition hover:bg-white/10 hover:text-white/70"
+              title={sidebarVisible ? "Sembunyikan sidebar" : "Tampilkan sidebar"}
+            >
+              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {sidebarVisible ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                )}
+              </svg>
+            </button>
+            <div className="h-4 w-px bg-white/10" />
+            <button
+              onClick={() => setPreviewDevice("mobile")}
+              className={`rounded-lg p-2 text-xs transition ${previewDevice === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
+            >
+              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            </button>
+            <button
+              onClick={() => setPreviewDevice("desktop")}
+              className={`rounded-lg p-2 text-xs transition ${previewDevice === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
+            >
+              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            </button>
+          </div>
+          <span className="text-xs text-white/30">Template Preview</span>
+        </div>
+
+        {/* Preview Area */}
+        <div className="flex flex-1 items-center justify-center overflow-hidden bg-[#0D0D0D] p-4">
+          <div className={`relative transition-all duration-200 ${previewDevice === "mobile" ? "h-[780px] w-[390px] shrink-0 rounded-[3rem] border-[4px] border-[#222] bg-[#000] shadow-2xl" : "h-full w-full max-w-4xl"}`}>
+            {previewDevice === "mobile" && (
+              <>
+                <div className="absolute left-1/2 top-0 z-20 h-[30px] w-[120px] -translate-x-1/2 rounded-b-2xl bg-[#000]" />
+                <div className="absolute left-1/2 top-[10px] z-20 h-[14px] w-[14px] -translate-x-1/2 rounded-full bg-[#222]" />
+              </>
+            )}
+            {previewDevice === "mobile" && (
+              <>
+                <div className="absolute left-[-6px] top-[140px] z-10 h-[50px] w-[4px] rounded-r bg-[#333]" />
+                <div className="absolute left-[-6px] top-[200px] z-10 h-[60px] w-[4px] rounded-r bg-[#333]" />
+                <div className="absolute right-[-6px] top-[160px] z-10 h-[70px] w-[4px] rounded-l bg-[#333]" />
+              </>
+            )}
+            <div className="h-full w-full overflow-y-auto bg-white" style={previewDevice === "mobile" ? { borderRadius: "2.6rem" } : { borderRadius: "1rem" }}>
+              <div className="p-4">
+                <TemplatePreview values={values} sections={selectedSections} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ interface AdminUser {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadUsers = async () => {
     try {
@@ -25,12 +26,12 @@ export default function AdminUsersPage() {
       setUsers(data);
     } catch {
       toast.error("Gagal memuat user");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    void Promise.resolve().then(loadUsers);
-  }, []);
+  useEffect(() => { loadUsers(); }, []);
 
   const updateRole = async (userId: string, role: string) => {
     try {
@@ -45,7 +46,7 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-[#D9B86C]">User Management</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-gold-accent">User Management</p>
         <h1 className="mt-2 font-serif text-5xl text-white">Users & Roles</h1>
         <p className="mt-3 text-sm text-white/55">Ubah role user menjadi admin atau user biasa.</p>
       </div>
@@ -63,14 +64,18 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {loading ? (
+              <tr><td colSpan={6} className="p-8 text-center text-white/45">Memuat data user...</td></tr>
+            ) : users.length === 0 ? (
+              <tr><td colSpan={6} className="p-8 text-center text-white/45">Belum ada user terdaftar</td></tr>
+            ) : users.map((user) => (
               <tr key={user.id} className="border-b border-white/10 text-white/75">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D9B86C] text-[#15100e]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gold-accent text-[#15100e]">
                       {user.role === "admin" ? <Shield className="size-4" /> : <UserCog className="size-4" />}
                     </div>
-                    <Link href={`/admin/clients/${user.id}`} className="hover:text-[#D9B86C]">{user.name || "Tanpa nama"}</Link>
+                    <Link href={`/admin/clients/${user.id}`} className="hover:text-gold-accent">{user.name || "Tanpa nama"}</Link>
                   </div>
                 </td>
                 <td>{user.email}</td>

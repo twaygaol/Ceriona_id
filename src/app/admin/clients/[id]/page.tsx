@@ -23,17 +23,35 @@ interface ClientDetailResponse {
 export default function AdminClientDetailPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<ClientDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    axios.get<ClientDetailResponse>(`/api/admin/clients/${params.id}`).then((response) => setData(response.data)).catch(() => null);
+    setLoading(true);
+    setError(false);
+    axios.get<ClientDetailResponse>(`/api/admin/clients/${params.id}`)
+      .then((response) => setData(response.data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, [params.id]);
 
-  if (!data) return <div className="text-white/55">Memuat client...</div>;
+  if (loading) return (
+    <div className="space-y-8 text-white">
+      <div><div className="mb-2 h-4 w-40 animate-pulse rounded bg-white/10" /><div className="h-8 w-64 animate-pulse rounded bg-white/10" /></div>
+      <div className="grid gap-4 md:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="animate-pulse rounded-[2rem] border border-white/10 bg-white/5 p-5"><div className="mb-2 h-3 w-16 rounded bg-white/10" /><div className="h-8 w-12 rounded bg-white/10" /></div>)}
+      </div>
+    </div>
+  );
+
+  if (error) return <div className="rounded-[2rem] border border-red-500/20 bg-red-500/5 p-8 text-center text-white/55">Gagal memuat data client. <button onClick={() => { setLoading(true); setError(false); axios.get<ClientDetailResponse>(`/api/admin/clients/${params.id}`).then((r) => setData(r.data)).catch(() => setError(true)).finally(() => setLoading(false)); }} className="text-gold-accent underline">Coba lagi</button></div>;
+
+  if (!data) return null;
 
   return (
     <div className="space-y-8 text-white">
       <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-[#D9B86C]">Client Detail</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-gold-accent">Client Detail</p>
         <h1 className="mt-2 font-serif text-5xl">{data.client.name || data.client.email}</h1>
         <p className="mt-3 text-sm text-white/55">{data.client.email} · role: {data.client.role}</p>
       </div>
@@ -47,40 +65,48 @@ export default function AdminClientDetailPage() {
       </div>
 
       <Section title="Undangan Client" icon={Mail}>
-        {data.client.invitations.map((invitation) => (
+        {data.client.invitations.length === 0 ? (
+          <p className="text-sm text-white/45">Belum ada undangan</p>
+        ) : data.client.invitations.map((invitation) => (
           <div key={invitation.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="font-medium text-white">{invitation.brideName} & {invitation.groomName}</p>
             <p className="mt-1 text-xs text-white/45">{invitation.template.name} · {invitation.isPublished ? "published" : "draft"}</p>
-            <p className="mt-2 text-xs text-[#D9B86C]">{invitation._count.guests} tamu · {invitation._count.rsvps} RSVP · {invitation.viewCount} views</p>
+            <p className="mt-2 text-xs text-gold-accent">{invitation._count.guests} tamu · {invitation._count.rsvps} RSVP · {invitation.viewCount} views</p>
           </div>
         ))}
       </Section>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <Section title="Guest Activity" icon={Users}>
-          {data.guests.map((guest) => (
+          {data.guests.length === 0 ? (
+            <p className="text-sm text-white/45">Belum ada tamu</p>
+          ) : data.guests.map((guest) => (
             <div key={guest.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="font-medium text-white">{guest.name}</p>
               <p className="mt-1 text-xs text-white/45">{guest.phone || "no phone"}</p>
-              <p className="mt-2 text-xs text-[#D9B86C]">{guest.status}</p>
+              <p className="mt-2 text-xs text-gold-accent">{guest.status}</p>
             </div>
           ))}
         </Section>
         <Section title="Recent RSVP" icon={MessageCircle}>
-          {data.rsvps.map((rsvp) => (
+          {data.rsvps.length === 0 ? (
+            <p className="text-sm text-white/45">Belum ada RSVP</p>
+          ) : data.rsvps.map((rsvp) => (
             <div key={rsvp.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="font-medium text-white">{rsvp.name}</p>
               <p className="mt-1 text-xs text-white/45">{rsvp.guestCount} orang</p>
-              <p className="mt-2 text-xs text-[#D9B86C]">{rsvp.attending ? "Hadir" : "Tidak Hadir"}</p>
+              <p className="mt-2 text-xs text-gold-accent">{rsvp.attending ? "Hadir" : "Tidak Hadir"}</p>
             </div>
           ))}
         </Section>
         <Section title="WhatsApp Logs" icon={MessageCircle}>
-          {data.whatsappLogs.map((log) => (
+          {data.whatsappLogs.length === 0 ? (
+            <p className="text-sm text-white/45">Belum ada log WhatsApp</p>
+          ) : data.whatsappLogs.map((log) => (
             <div key={log.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="font-medium text-white">{log.guest?.name || log.phone}</p>
               <p className="mt-1 text-xs text-white/45">{log.provider}</p>
-              <p className="mt-2 text-xs text-[#D9B86C]">{log.status}</p>
+              <p className="mt-2 text-xs text-gold-accent">{log.status}</p>
             </div>
           ))}
         </Section>
@@ -94,5 +120,5 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof Mail; children: React.ReactNode }) {
-  return <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/5 p-5"><div className="flex items-center gap-2 text-white"><Icon className="size-4 text-[#D9B86C]" /><h2 className="font-serif text-2xl">{title}</h2></div><div className="space-y-3">{children}</div></div>;
+  return <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/5 p-5"><div className="flex items-center gap-2 text-white"><Icon className="size-4 text-gold-accent" /><h2 className="font-serif text-2xl">{title}</h2></div><div className="space-y-3">{children}</div></div>;
 }

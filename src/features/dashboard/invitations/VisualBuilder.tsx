@@ -14,7 +14,7 @@ import { FileUpload } from "@/components/ui/FileUpload";
 import { MusicPicker } from "@/components/ui/MusicPicker";
 import { Button } from "@/components/ui/button";
 import { TemplateSelector } from "@/features/dashboard/invitations/template-selector";
-import { SectionRenderer } from "@/components/templates/SectionRenderer";
+import { getRegistryAsDashboardTemplates } from "@/services/registryToDashboardAdapter";
 import type { DashboardTemplate, TemplateSection } from "@/types/template";
 
 const invitationSchema = z.object({
@@ -134,12 +134,14 @@ export function VisualBuilder({ mode, initialInvitation }: VisualBuilderProps) {
     async function loadTemplates() {
       try {
         const { data } = await axios.get<DashboardTemplate[]>("/api/templates?includeInactive=true");
-        setTemplates(data);
+        const registryTemplates = getRegistryAsDashboardTemplates();
+        const allTemplates = [...registryTemplates, ...data];
+        setTemplates(allTemplates);
 
-        const activeTemplates = data.filter((template) => template.isActive);
+        const activeTemplates = allTemplates.filter((template) => template.isActive);
         const requestedTheme = searchParams.get("theme");
         const themeMatchedTemplate = requestedTheme
-          ? activeTemplates.find((template) => template.layout.visualTheme === requestedTheme)
+          ? activeTemplates.find((template) => template.layout.visualTheme === requestedTheme || template.id === requestedTheme)
           : null;
         const initialTemplate =
           activeTemplates.find((template) => template.id === initialInvitation?.templateId) ??

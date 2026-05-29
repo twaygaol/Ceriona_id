@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Monitor, Music, Smartphone, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Music, Sparkles } from "lucide-react";
 import type { DashboardTemplate, TemplateSection } from "@/types/template";
 import { Stats } from "@/components/sections/Stats";
 import { Pricing } from "@/components/sections/Pricing";
@@ -13,7 +13,9 @@ import { FAQ } from "@/components/sections/FAQ";
 import { CTA } from "@/components/sections/CTA";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { templateThemePresets } from "@/services/templateThemeService";
+import { getRegistryPresets } from "@/services/themeRegistryAdapter";
+import type { TemplateThemePreset } from "@/services/templateThemeService";
+import { ThemeRenderer } from "@/features/invitation/renderer/ThemeRenderer";
 
 const features = [
   { icon: Clock, title: "Countdown", desc: "Hitung mundur elegan menuju hari bahagia." },
@@ -32,9 +34,10 @@ const packages = [
 
 export default function HomePage() {
   const router = useRouter();
-  const themes = useMemo(() => templateThemePresets.slice(0, 9), []);
+  const registryPresets = useMemo(() => getRegistryPresets(), []);
+  const themes = useMemo(() => registryPresets, [registryPresets]);
+  const registryKeys = useMemo(() => new Set(registryPresets.map((t) => t.key)), [registryPresets]);
   const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
-  const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,62 +64,8 @@ export default function HomePage() {
   const openPreview = useCallback((themeKey: string) => {
     const theme = themes.find((t) => t.key === themeKey);
     if (!theme) return;
-    const sections = theme.sections as TemplateSection[];
-    const template: DashboardTemplate = {
-      id: theme.key,
-      name: theme.label,
-      slug: theme.key,
-      description: theme.description,
-      category: theme.values.category,
-      thumbnail: null,
-      previewImage: null,
-      layout: {
-        sections,
-        visualTheme: theme.key,
-        colors: {
-          primary: theme.values.primaryColor,
-          secondary: theme.values.secondaryColor,
-          background: theme.values.backgroundColor,
-          text: theme.values.textColor,
-        },
-        backgroundGradient: { from: theme.values.gradientFrom, to: theme.values.gradientTo },
-        fonts: { heading: theme.values.headingFont, body: theme.values.bodyFont },
-        opening: {
-          eyebrow: theme.opening.eyebrow,
-          buttonLabel: theme.opening.buttonLabel,
-          ornament: theme.opening.ornament,
-          backgroundImage: theme.opening.backgroundImage,
-        },
-      },
-      styles: { borderRadius: theme.values.borderRadius, buttonStyle: theme.values.buttonStyle },
-      isPremium: theme.values.isPremium,
-      isActive: true,
-      isDefault: false,
-      usageCount: 0,
-      createdBy: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const payload = {
-      id: "preview",
-      slug: "preview",
-      brideName: form.brideName || "Ayla",
-      groomName: form.groomName || "Reza",
-      templateId: theme.key,
-      eventDate: new Date("2026-12-12").toISOString(),
-      eventTime: "10:00",
-      eventLocation: "Jakarta",
-      googleMapsUrl: "",
-      story: "Kisah cinta kami dimulai dari sebuah pertemuan yang tidak terduga...",
-      gallery: [],
-      heroImage: "",
-      musicUrl: "",
-      template,
-      sections,
-    };
-    sessionStorage.setItem("preview-data", JSON.stringify(payload));
     setPreviewThemeKey(themeKey);
-  }, [form.brideName, form.groomName]);
+  }, [themes]);
 
   const openWizard = (themeKey?: string, targetStep: 1 | 2 | 3 = 1) => {
     if (themeKey) setForm((current) => ({ ...current, themeKey }));
@@ -282,18 +231,6 @@ export default function HomePage() {
             <div className="flex h-[90vh] flex-col">
               <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPreviewDevice("mobile")}
-                    className={`rounded-lg p-2 text-xs transition ${previewDevice === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
-                  >
-                    <Smartphone className="size-4" />
-                  </button>
-                  <button
-                    onClick={() => setPreviewDevice("desktop")}
-                    className={`rounded-lg p-2 text-xs transition ${previewDevice === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
-                  >
-                    <Monitor className="size-4" />
-                  </button>
                   <div className="ml-2 text-sm font-medium text-white/80">{previewTheme.label}</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -320,30 +257,17 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex flex-1 items-center justify-center overflow-hidden bg-[#0D0D0D] p-4">
-                <div
-                  className={`relative transition-all duration-200 ${
-                    previewDevice === "mobile"
-                      ? "h-[780px] w-[390px] shrink-0 rounded-[3rem] border-[4px] border-[#222] bg-[#000] shadow-2xl"
-                      : "h-full w-full max-w-4xl"
-                  }`}
-                >
-                  {previewDevice === "mobile" && (
-                    <>
-                      <div className="absolute left-1/2 top-0 z-20 h-[30px] w-[120px] -translate-x-1/2 rounded-b-2xl bg-[#000]" />
-                      <div className="absolute left-1/2 top-[10px] z-20 h-[14px] w-[14px] -translate-x-1/2 rounded-full bg-[#222]" />
-                      <div className="absolute left-[-6px] top-[140px] z-10 h-[50px] w-[4px] rounded-r bg-[#333]" />
-                      <div className="absolute left-[-6px] top-[200px] z-10 h-[60px] w-[4px] rounded-r bg-[#333]" />
-                      <div className="absolute right-[-6px] top-[160px] z-10 h-[70px] w-[4px] rounded-l bg-[#333]" />
-                    </>
-                  )}
-                  <iframe
-                    key={`${previewDevice}-${previewTheme.key}`}
-                    src={`/preview/builder?device=${previewDevice}`}
-                    className={`h-full w-full border-0 bg-white ${
-                      previewDevice === "mobile" ? "rounded-[2.6rem]" : "rounded-2xl border border-white/10 shadow-2xl"
-                    }`}
-                    title="Preview"
-                    sandbox="allow-same-origin allow-scripts"
+                <div className="h-full w-full overflow-y-auto rounded-2xl bg-white">
+                  <ThemeRenderer
+                    themeId={previewTheme.key}
+                    invitation={{
+                      brideName: form.brideName || "Ayla",
+                      groomName: form.groomName || "Reza",
+                      eventDate: new Date("2026-12-12"),
+                      eventTime: "10:00",
+                      eventLocation: "Jakarta",
+                      story: "Kisah cinta kami dimulai dari sebuah pertemuan yang tidak terduga...",
+                    }}
                   />
                 </div>
               </div>
@@ -699,7 +623,7 @@ function ThemePhonePreview({
   brideName,
   photoMode = false,
 }: {
-  theme: (typeof templateThemePresets)[number];
+  theme: TemplateThemePreset;
   groomName: string;
   brideName: string;
   photoMode?: boolean;

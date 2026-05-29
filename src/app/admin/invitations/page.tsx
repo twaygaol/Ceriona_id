@@ -23,13 +23,18 @@ export default function AdminInvitationsPage() {
   const [invitations, setInvitations] = useState<AdminInvitation[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "published" | "draft">("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const params = new URLSearchParams();
     if (query) params.set("query", query);
     if (status !== "all") params.set("status", status);
 
-    axios.get<AdminInvitation[]>(`/api/admin/invitations?${params.toString()}`).then((response) => setInvitations(response.data)).catch(() => null);
+    axios.get<AdminInvitation[]>(`/api/admin/invitations?${params.toString()}`)
+      .then((response) => setInvitations(response.data))
+      .catch(() => null)
+      .finally(() => setLoading(false));
   }, [query, status]);
 
   const totals = useMemo(() => ({ total: invitations.length, published: invitations.filter((item) => item.isPublished).length, views: invitations.reduce((sum, item) => sum + item.viewCount, 0) }), [invitations]);
@@ -37,7 +42,7 @@ export default function AdminInvitationsPage() {
   return (
     <div className="space-y-8 text-white">
       <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-[#D9B86C]">Invitation Management</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-gold-accent">Invitation Management</p>
         <h1 className="mt-2 font-serif text-5xl">All Invitations</h1>
         <p className="mt-3 text-sm text-white/55">Admin bisa memantau undangan dari semua client dalam satu layar.</p>
       </div>
@@ -74,14 +79,18 @@ export default function AdminInvitationsPage() {
             </tr>
           </thead>
           <tbody>
-            {invitations.map((item) => (
+            {loading ? (
+              <tr><td colSpan={7} className="p-8 text-center text-white/45">Memuat data undangan...</td></tr>
+            ) : invitations.length === 0 ? (
+              <tr><td colSpan={7} className="p-8 text-center text-white/45">Tidak ada undangan ditemukan</td></tr>
+            ) : invitations.map((item) => (
               <tr key={item.id} className="border-b border-white/10 text-white/75">
                 <td className="px-5 py-4">
                   <p className="font-medium text-white">{item.brideName} & {item.groomName}</p>
                   <p className="text-xs text-white/45">{item.title}</p>
                 </td>
                 <td>
-                  <Link href={`/admin/clients/${item.user.id}`} className="hover:text-[#D9B86C]">{item.user.name || item.user.email}</Link>
+                  <Link href={`/admin/clients/${item.user.id}`} className="hover:text-gold-accent">{item.user.name || item.user.email}</Link>
                 </td>
                 <td>{item.template.name}</td>
                 <td>{item._count.guests} / {item._count.rsvps}</td>

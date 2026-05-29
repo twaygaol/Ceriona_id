@@ -25,25 +25,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   useEffect(() => {
+    let mounted = true;
     getSession().then((currentSession) => {
+      if (!mounted) return;
       setSession(currentSession);
       setLoading(false);
       if (!currentSession) router.replace("/login");
       if (currentSession && currentSession.user.role !== "admin") router.replace("/dashboard");
     });
+    return () => { mounted = false; };
   }, [router]);
 
-  if (loading) return <div className="min-h-screen bg-[#0f0b09] p-10 text-center text-[#D9B86C]">Memuat admin...</div>;
+  if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#0f0b09]"><div className="space-y-4 text-center"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gold-accent border-t-transparent" /><p className="text-sm text-gold-accent">Memuat admin...</p></div></div>;
   if (!session || session.user.role !== "admin") return null;
 
   return (
     <div className="min-h-screen bg-[#0f0b09] text-[#F7EBDD]">
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-white/10 bg-[#15100e]/95 p-5 backdrop-blur-xl lg:block">
-        <Link href="/admin" className="flex items-center gap-3 rounded-3xl border border-[#D9B86C]/20 bg-white/5 p-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D9B86C] text-[#15100e]"><Shield className="size-5" /></div>
+        <Link href="/admin" className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold-accent text-[#15100e]"><Shield className="size-5" /></div>
           <div>
             <p className="font-serif text-2xl leading-none">Ceriona</p>
-            <p className="text-xs uppercase tracking-[0.24em] text-[#D9B86C]">Admin</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-gold-accent">Admin</p>
           </div>
         </Link>
 
@@ -51,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {adminItems.map((item) => {
             const active = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className={cn("flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition", active ? "bg-[#D9B86C] text-[#15100e]" : "text-white/65 hover:bg-white/10 hover:text-white")}>
+              <Link key={item.href} href={item.href} className={cn("flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition", active ? "bg-gold-accent text-[#15100e]" : "text-white/65 hover:bg-white/10 hover:text-white")}>
                 <item.icon className="size-4" />
                 {item.label}
               </Link>

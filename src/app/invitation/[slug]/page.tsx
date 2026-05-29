@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { DynamicTemplate } from "@/components/templates/DynamicTemplate";
 import { notFound } from "next/navigation";
+import { InvitationRenderer } from "./InvitationRenderer";
 
 export default async function InvitationPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -38,10 +38,5 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
     musicUrl: invitation.musicUrl ?? undefined,
   };
 
-  return (
-    <DynamicTemplate
-      templateId={invitation.templateId}
-      invitation={invitationData}
-    />
-  );
+  return <InvitationRenderer invitation={invitationData} />;
 }

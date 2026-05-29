@@ -59,7 +59,7 @@ export function Navbar() {
           prefetch={false}
           className="hidden rounded-full bg-[#241A16] px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#F6E7C8] transition-all hover:bg-[#3A2A22] md:inline-block"
         >
-          Mulai Gratis
+          Silahkan Mulai
         </Link>
 
         {/* Mobile Menu Button */}
@@ -89,7 +89,7 @@ export function Navbar() {
               className="inline-block px-6 py-2 bg-[#4A3728] text-[#E8D5B0] text-sm font-medium tracking-wide uppercase rounded-sm text-center"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Mulai Gratis
+              Silahkan Mulai
             </Link>
           </div>
         )}

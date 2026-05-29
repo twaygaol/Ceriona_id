@@ -1,0 +1,91 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useState } from "react";
+import type { GiftVariantProps } from "../../../types";
+
+export function GiftVariant({ config, colors, fonts, banks, onCopy }: GiftVariantProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (text: string, id: string) => {
+    onCopy(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  return (
+    <section
+      className="relative w-full py-20 px-6"
+      style={{ background: colors.background, fontFamily: fonts.heading }}
+    >
+      <div className="max-w-3xl mx-auto">
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <p className="text-sm mb-2" style={{ color: colors.secondary, fontFamily: fonts.body }}>
+            ﷽
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: colors.text }}>
+            Hadiah
+          </h2>
+          <svg width="80" height="12" viewBox="0 0 80 12" className="mx-auto mb-3 opacity-40">
+            <path d="M0 6 Q20 0 40 6 Q60 12 80 6" stroke={colors.secondary} strokeWidth="1" fill="none" />
+          </svg>
+          <p className="text-sm max-w-md mx-auto" style={{ color: colors.muted, fontFamily: fonts.body }}>
+            Tanpa mengurangi rasa hormat, bagi yang ingin memberikan tanda kasih dapat melalui rekening berikut
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {(banks || []).map((bank, idx) => (
+            <motion.div
+              key={bank.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              className="p-6 text-center"
+              style={{
+                border: `1.5px solid ${colors.primary}33`,
+                borderRadius: config.layout.borderRadius,
+                background: `linear-gradient(135deg, ${colors.surface}, ${colors.background})`,
+              }}
+            >
+              {bank.logo && (
+                <img src={bank.logo} alt={bank.bank} className="h-8 mx-auto mb-3 object-contain" />
+              )}
+              <p className="text-sm tracking-wider mb-1" style={{ color: colors.secondary, fontFamily: fonts.body }}>
+                {bank.bank}
+              </p>
+              <p className="text-lg font-bold tracking-wider mb-1" style={{ color: colors.primary }}>
+                {bank.accountNumber}
+              </p>
+              <p className="text-sm mb-4" style={{ color: colors.muted, fontFamily: fonts.body }}>
+                a.n. {bank.accountName}
+              </p>
+              <motion.button
+                onClick={() => handleCopy(bank.accountNumber, bank.id)}
+                className="px-5 py-2 text-xs tracking-wider cursor-pointer"
+                style={{
+                  color: copiedId === bank.id ? colors.surface : colors.primary,
+                  background: copiedId === bank.id ? colors.primary : "transparent",
+                  border: `1px solid ${colors.primary}`,
+                  borderRadius: config.layout.borderRadius,
+                  fontFamily: fonts.body,
+                }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                {copiedId === bank.id ? "Tersalin!" : "Salin Nomor"}
+              </motion.button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
