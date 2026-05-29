@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface Profile { id: string; email: string; name?: string | null; avatar?: string | null; role?: string; createdAt?: string }
 
@@ -22,6 +23,7 @@ type ProfileValues = z.input<typeof profileSchema>;
 export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     register,
@@ -38,8 +40,14 @@ export default function SettingsPage() {
       setProfile(data);
       reset({ name: data.name ?? "", avatar: data.avatar ?? "" });
     }
-    loadProfile().catch(() => toast.error("Gagal memuat profil"));
+    loadProfile().catch(() => toast.error("Gagal memuat profil")).finally(() => setIsLoading(false));
   }, [reset]);
+
+  if (isLoading) return <SettingsSkeleton />;
+
+  function SettingsSkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><div className="grid gap-6 xl:grid-cols-[1fr_360px]"><CardSkeleton /><CardSkeleton /></div></div>;
+  }
 
   const onSubmit = async (values: ProfileValues) => {
     setSaving(true);

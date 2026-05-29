@@ -135,8 +135,8 @@ export function TemplateSelector({
                   </div>
                   <div>
                     <div className="mb-3 flex gap-1.5">
-                      {[colors.primary, colors.secondary, colors.background].filter(Boolean).map((color) => (
-                        <span key={color} className="h-6 w-6 rounded-full border border-black/10" style={{ backgroundColor: color }} />
+                      {[colors.primary, colors.secondary, colors.background].filter(Boolean).map((color, i) => (
+                        <span key={`${color}-${i}`} className="h-6 w-6 rounded-full border border-black/10" style={{ backgroundColor: color }} />
                       ))}
                     </div>
                     <p className="font-serif text-2xl leading-tight">{template.name}</p>
@@ -248,8 +248,8 @@ export function SelectedTemplateSidebar({ template }: { template?: DashboardTemp
       <div className="flex gap-2">
         {[template.layout.colors?.primary, template.layout.colors?.secondary, template.layout.colors?.background, template.layout.colors?.text]
           .filter(Boolean)
-          .map((color) => (
-            <span key={color} className="h-8 w-8 rounded-full border border-black/10" style={{ backgroundColor: color }} />
+          .map((color, i) => (
+            <span key={`${color}-${i}`} className="h-8 w-8 rounded-full border border-black/10" style={{ backgroundColor: color }} />
           ))}
       </div>
       <div>

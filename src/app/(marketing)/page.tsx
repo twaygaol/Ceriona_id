@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Music, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Monitor, Music, Smartphone, Sparkles } from "lucide-react";
+import type { DashboardTemplate, TemplateSection } from "@/types/template";
 import { Stats } from "@/components/sections/Stats";
 import { Pricing } from "@/components/sections/Pricing";
 import { Testimonials } from "@/components/sections/Testimonials";
@@ -33,6 +34,7 @@ export default function HomePage() {
   const router = useRouter();
   const themes = useMemo(() => templateThemePresets.slice(0, 9), []);
   const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +57,66 @@ export default function HomePage() {
 
   const selectedTheme = themes.find((theme) => theme.key === form.themeKey) ?? themes[0];
   const previewTheme = themes.find((theme) => theme.key === previewThemeKey) ?? null;
+
+  const openPreview = useCallback((themeKey: string) => {
+    const theme = themes.find((t) => t.key === themeKey);
+    if (!theme) return;
+    const sections = theme.sections as TemplateSection[];
+    const template: DashboardTemplate = {
+      id: theme.key,
+      name: theme.label,
+      slug: theme.key,
+      description: theme.description,
+      category: theme.values.category,
+      thumbnail: null,
+      previewImage: null,
+      layout: {
+        sections,
+        visualTheme: theme.key,
+        colors: {
+          primary: theme.values.primaryColor,
+          secondary: theme.values.secondaryColor,
+          background: theme.values.backgroundColor,
+          text: theme.values.textColor,
+        },
+        backgroundGradient: { from: theme.values.gradientFrom, to: theme.values.gradientTo },
+        fonts: { heading: theme.values.headingFont, body: theme.values.bodyFont },
+        opening: {
+          eyebrow: theme.opening.eyebrow,
+          buttonLabel: theme.opening.buttonLabel,
+          ornament: theme.opening.ornament,
+          backgroundImage: theme.opening.backgroundImage,
+        },
+      },
+      styles: { borderRadius: theme.values.borderRadius, buttonStyle: theme.values.buttonStyle },
+      isPremium: theme.values.isPremium,
+      isActive: true,
+      isDefault: false,
+      usageCount: 0,
+      createdBy: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const payload = {
+      id: "preview",
+      slug: "preview",
+      brideName: form.brideName || "Ayla",
+      groomName: form.groomName || "Reza",
+      templateId: theme.key,
+      eventDate: new Date("2026-12-12").toISOString(),
+      eventTime: "10:00",
+      eventLocation: "Jakarta",
+      googleMapsUrl: "",
+      story: "Kisah cinta kami dimulai dari sebuah pertemuan yang tidak terduga...",
+      gallery: [],
+      heroImage: "",
+      musicUrl: "",
+      template,
+      sections,
+    };
+    sessionStorage.setItem("preview-data", JSON.stringify(payload));
+    setPreviewThemeKey(themeKey);
+  }, [form.brideName, form.groomName]);
 
   const openWizard = (themeKey?: string, targetStep: 1 | 2 | 3 = 1) => {
     if (themeKey) setForm((current) => ({ ...current, themeKey }));
@@ -171,7 +233,7 @@ export default function HomePage() {
                     <Eye className="size-3.5" /> Preview dulu sebelum lanjut checkout
                   </div>
                   <div className="flex gap-3">
-                    <Button type="button" variant="outline" onClick={() => setPreviewThemeKey(theme.key)}>Preview</Button>
+                    <Button type="button" variant="outline" onClick={() => openPreview(theme.key)}>Preview</Button>
                     <Button type="button" onClick={() => openWizard(theme.key, 2)} className="flex-1 bg-brown text-gold-light hover:bg-gold hover:text-brown">
                       Gunakan Tema Ini
                     </Button>
@@ -214,40 +276,78 @@ export default function HomePage() {
       <CTA />
 
       {/* Preview Dialog */}
-      <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => !open && setPreviewThemeKey(null)}>
-        <DialogContent className="max-w-5xl bg-[#120f0d] p-0 text-white">
+      <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => { if (!open) setPreviewThemeKey(null); }}>
+        <DialogContent className="max-w-5xl bg-[#0D0D0D] p-0 text-white">
           {previewTheme && (
-            <>
-              <DialogHeader className="p-6 pb-0">
-                <DialogTitle>{previewTheme.label}</DialogTitle>
-                <DialogDescription className="text-white/60">{previewTheme.description}</DialogDescription>
-              </DialogHeader>
-              <div className="p-6 pt-4">
-                <div className="overflow-hidden rounded-[28px] border border-white/10 p-6" style={{ background: previewTheme.preview, color: previewTheme.values.textColor }}>
-                  <div className="rounded-[24px] border border-white/15 bg-white/15 p-6 text-center backdrop-blur-md">
-                    <p className="text-xs uppercase tracking-[0.35em] opacity-60">{previewTheme.opening.eyebrow}</p>
-                    <h3 className="mt-5 font-serif text-6xl leading-none">{form.groomName} & {form.brideName}</h3>
-                    <p className="mt-4 text-sm opacity-75">Preview live sesuai nama yang kamu isi.</p>
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                      <Button type="button" variant="outline" onClick={() => setPreviewThemeKey(null)} className="border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white">
-                        Tutup Preview
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          setForm((current) => ({ ...current, themeKey: previewTheme.key }));
-                          setPreviewThemeKey(null);
-                          openWizard(previewTheme.key, 2);
-                        }}
-                        className="bg-[#D9B86C] text-[#140F0D] hover:bg-[#E4C67C]"
-                      >
-                        Gunakan Tema Ini
-                      </Button>
-                    </div>
-                  </div>
+            <div className="flex h-[90vh] flex-col">
+              <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPreviewDevice("mobile")}
+                    className={`rounded-lg p-2 text-xs transition ${previewDevice === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
+                  >
+                    <Smartphone className="size-4" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewDevice("desktop")}
+                    className={`rounded-lg p-2 text-xs transition ${previewDevice === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}
+                  >
+                    <Monitor className="size-4" />
+                  </button>
+                  <div className="ml-2 text-sm font-medium text-white/80">{previewTheme.label}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPreviewThemeKey(null)}
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                  >
+                    Tutup
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setForm((current) => ({ ...current, themeKey: previewTheme.key }));
+                      setPreviewThemeKey(null);
+                      openWizard(previewTheme.key, 2);
+                    }}
+                    className="bg-brown text-gold-light hover:bg-gold hover:text-brown"
+                  >
+                    <Sparkles className="size-4" />
+                    Gunakan Tema Ini
+                  </Button>
                 </div>
               </div>
-            </>
+              <div className="flex flex-1 items-center justify-center overflow-hidden bg-[#0D0D0D] p-4">
+                <div
+                  className={`relative transition-all duration-200 ${
+                    previewDevice === "mobile"
+                      ? "h-[780px] w-[390px] shrink-0 rounded-[3rem] border-[4px] border-[#222] bg-[#000] shadow-2xl"
+                      : "h-full w-full max-w-4xl"
+                  }`}
+                >
+                  {previewDevice === "mobile" && (
+                    <>
+                      <div className="absolute left-1/2 top-0 z-20 h-[30px] w-[120px] -translate-x-1/2 rounded-b-2xl bg-[#000]" />
+                      <div className="absolute left-1/2 top-[10px] z-20 h-[14px] w-[14px] -translate-x-1/2 rounded-full bg-[#222]" />
+                      <div className="absolute left-[-6px] top-[140px] z-10 h-[50px] w-[4px] rounded-r bg-[#333]" />
+                      <div className="absolute left-[-6px] top-[200px] z-10 h-[60px] w-[4px] rounded-r bg-[#333]" />
+                      <div className="absolute right-[-6px] top-[160px] z-10 h-[70px] w-[4px] rounded-l bg-[#333]" />
+                    </>
+                  )}
+                  <iframe
+                    key={`${previewDevice}-${previewTheme.key}`}
+                    src={`/preview/builder?device=${previewDevice}`}
+                    className={`h-full w-full border-0 bg-white ${
+                      previewDevice === "mobile" ? "rounded-[2.6rem]" : "rounded-2xl border border-white/10 shadow-2xl"
+                    }`}
+                    title="Preview"
+                    sandbox="allow-same-origin allow-scripts"
+                  />
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -361,7 +461,7 @@ export default function HomePage() {
                               variant="outline"
                               size="sm"
                               className="h-6 px-2 text-[10px]"
-                              onClick={(e) => { e.stopPropagation(); setPreviewThemeKey(theme.key); }}
+                              onClick={(e) => { e.stopPropagation(); openPreview(theme.key); }}
                             >
                               <Eye className="size-3" />
                             </Button>

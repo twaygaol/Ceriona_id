@@ -183,9 +183,9 @@ export default function TemplatesPage() {
                       {[colors.primary, colors.secondary, colors.background, colors.text]
                         .filter(Boolean)
                         .slice(0, 4)
-                        .map((color) => (
+                        .map((color, i) => (
                           <span
-                            key={color}
+                            key={`${color}-${i}`}
                             className="h-8 w-8 rounded-full border border-black/10 shadow-sm"
                             style={{ backgroundColor: color }}
                           />

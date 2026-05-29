@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, SelectSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface InvitationOption { id: string; title: string; brideName: string; groomName: string; gallery?: Array<{ url: string }> }
 
@@ -15,6 +16,7 @@ export default function GalleryPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadInvitations() {
@@ -22,8 +24,14 @@ export default function GalleryPage() {
       setInvitations(data);
       if (data[0]) { setSelectedInvitationId(data[0].id); setImages(data[0].gallery?.map((item) => item.url) ?? []); }
     }
-    loadInvitations().catch(() => toast.error("Gagal memuat undangan"));
+    loadInvitations().catch(() => toast.error("Gagal memuat undangan")).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <GallerySkeleton />;
+
+  function GallerySkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><SelectSkeleton /><CardSkeleton /></div>;
+  }
 
   const changeInvitation = (id: string) => { setSelectedInvitationId(id); setImages(invitations.find((item) => item.id === id)?.gallery?.map((item) => item.url) ?? []); };
   const saveGallery = async () => { try { await axios.put(`/api/invitations/${selectedInvitationId}`, { gallery: images }); toast.success("Galeri berhasil disimpan"); } catch { toast.error("Gagal menyimpan galeri"); } };

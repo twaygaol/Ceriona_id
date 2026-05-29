@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { MessageSquareQuote } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, ListSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface OverviewResponse {
   recentRsvps: Array<{ id: string; name: string; attending: boolean; guestCount: number; createdAt: string; invitation: { title: string }; message?: string | null }>;
@@ -11,10 +12,17 @@ interface OverviewResponse {
 
 export default function WishesPage() {
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios.get<OverviewResponse>("/api/dashboard/overview").then((response) => setOverview(response.data)).catch(() => null);
+    axios.get<OverviewResponse>("/api/dashboard/overview").then((response) => setOverview(response.data)).catch(() => null).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <WishesSkeleton />;
+
+  function WishesSkeleton() {
+    return <div className="space-y-8"><TitleSkeleton /><ListSkeleton count={4} /></div>;
+  }
 
   return (
     <div className="space-y-8">

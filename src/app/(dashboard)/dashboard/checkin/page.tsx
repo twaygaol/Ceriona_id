@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { QrCode, Search, UserRoundCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, StatsCardSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface InvitationOption {
   id: string;
@@ -34,6 +35,7 @@ export default function CheckinPage() {
     }
   });
   const [query, setQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadInvitations() {
@@ -41,8 +43,10 @@ export default function CheckinPage() {
       setInvitations(data);
       if (data[0]) setSelectedInvitationId(data[0].id);
     }
-    loadInvitations().catch(() => null);
+    loadInvitations().catch(() => null).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <CheckinSkeleton />;
 
   useEffect(() => {
     async function loadGuests() {
@@ -59,6 +63,10 @@ export default function CheckinPage() {
   );
 
   const checkedInCount = filteredGuests.filter((guest) => checkedInIds.includes(guest.id)).length;
+
+  function CheckinSkeleton() {
+    return <div className="space-y-8"><TitleSkeleton /><div className="grid gap-4 md:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <StatsCardSkeleton key={i} />)}</div><div className="grid gap-6 xl:grid-cols-[360px_1fr]"><CardSkeleton /><CardSkeleton /></div></div>;
+  }
 
   const toggleCheckin = (guestId: string) => {
     setCheckedInIds((current) => {

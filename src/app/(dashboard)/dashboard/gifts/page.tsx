@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, SelectSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface InvitationOption {
   id: string;
@@ -43,6 +44,7 @@ export default function GiftsPage() {
   const [gifts, setGifts] = useState<VirtualGiftItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [featureLocked, setFeatureLocked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     register,
@@ -59,10 +61,14 @@ export default function GiftsPage() {
         if (data[0]) setSelectedInvitationId(data[0].id);
       } catch {
         toast.error("Gagal memuat undangan");
+      } finally {
+        setIsLoading(false);
       }
     }
     loadInvitations();
   }, []);
+
+  if (isLoading) return <GiftsSkeleton />;
 
   useEffect(() => {
     async function loadGifts() {
@@ -93,6 +99,10 @@ export default function GiftsPage() {
       setIsSaving(false);
     }
   };
+
+  function GiftsSkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><SelectSkeleton /><div className="grid gap-6 xl:grid-cols-[420px_1fr]"><CardSkeleton /><CardSkeleton /></div></div>;
+  }
 
   const deleteGift = async (giftId: string) => {
     try {

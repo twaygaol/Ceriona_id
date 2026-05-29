@@ -807,8 +807,8 @@ export function TemplateEditor({ mode, initialTemplate }: TemplateEditorProps) {
                                 className="rounded-3xl border border-gold/15 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
                               >
                                 <div className="mb-3 flex gap-2">
-                                  {Object.values(preset.colors).slice(0, 4).map((color) => (
-                                    <span key={color} className="h-8 w-8 rounded-full border border-black/5" style={{ backgroundColor: color }} />
+                                  {Object.values(preset.colors).slice(0, 4).map((color, i) => (
+                                    <span key={`${color}-${i}`} className="h-8 w-8 rounded-full border border-black/5" style={{ backgroundColor: color }} />
                                   ))}
                                 </div>
                                 <p className="font-medium text-brown">{preset.label}</p>

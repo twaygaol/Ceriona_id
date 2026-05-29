@@ -74,6 +74,7 @@ export function VisualBuilder({ mode, initialInvitation }: VisualBuilderProps) {
   const [musicUrl, setMusicUrl] = useState(initialInvitation?.musicUrl ?? "");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [previewVisible, setPreviewVisible] = useState(true);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -217,7 +218,15 @@ export function VisualBuilder({ mode, initialInvitation }: VisualBuilderProps) {
   return (
     <div className="flex h-full overflow-hidden">
       {/* Left Panel — Settings */}
-      <div className={`flex flex-col overflow-y-auto border-r border-gold/15 bg-white/50 backdrop-blur-xl ${previewVisible ? "w-[480px] min-w-[420px]" : "flex-1"}`}>
+      <AnimatePresence>
+        {sidebarVisible && (
+          <motion.div
+            initial={{ width: 0, opacity: 0, minWidth: 0 }}
+            animate={{ width: "auto", opacity: 1, minWidth: 420 }}
+            exit={{ width: 0, opacity: 0, minWidth: 0 }}
+            transition={{ duration: 0.25 }}
+            className="flex flex-col overflow-y-auto border-r border-gold/15 bg-white/50 backdrop-blur-xl"
+          >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gold/15 bg-white/80 px-5 py-3 backdrop-blur-xl">
           <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-brown-light hover:text-brown">
@@ -344,7 +353,9 @@ export function VisualBuilder({ mode, initialInvitation }: VisualBuilderProps) {
             </Button>
           </form>
         </div>
-      </div>
+      </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Right Panel — Live Preview */}
       <AnimatePresence>
@@ -359,6 +370,20 @@ export function VisualBuilder({ mode, initialInvitation }: VisualBuilderProps) {
             {/* Preview Toolbar */}
             <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">
               <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setSidebarVisible((v) => !v)}
+                  className="rounded-lg p-2 text-xs text-white/40 transition hover:bg-white/10 hover:text-white/70"
+                  title={sidebarVisible ? "Sembunyikan sidebar" : "Tampilkan sidebar"}
+                >
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {sidebarVisible ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    )}
+                  </svg>
+                </button>
+                <div className="h-4 w-px bg-white/10" />
                 <button
                   onClick={() => setPreviewDevice("mobile")}
                   className={`rounded-lg p-2 text-xs transition ${previewDevice === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"}`}

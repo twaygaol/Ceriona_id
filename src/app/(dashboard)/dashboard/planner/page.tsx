@@ -5,6 +5,7 @@ import Link from "next/link";
 import axios from "axios";
 import { CalendarDays, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface OverviewResponse {
   invitations: Array<{ id: string; couple: string; progressPercent: number; isPublished: boolean; template: string }>;
@@ -12,10 +13,17 @@ interface OverviewResponse {
 
 export default function PlannerPage() {
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios.get<OverviewResponse>("/api/dashboard/overview").then((response) => setOverview(response.data)).catch(() => null);
+    axios.get<OverviewResponse>("/api/dashboard/overview").then((response) => setOverview(response.data)).catch(() => null).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <PlannerSkeleton />;
+
+  function PlannerSkeleton() {
+    return <div className="space-y-8"><TitleSkeleton /><div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]"><CardSkeleton /><CardSkeleton /></div></div>;
+  }
 
   const firstInvitation = overview?.invitations[0];
 

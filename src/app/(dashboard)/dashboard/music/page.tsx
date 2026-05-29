@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, SelectSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface InvitationOption { id: string; title: string; brideName: string; groomName: string; musicUrl?: string | null }
 
@@ -14,6 +15,7 @@ export default function MusicPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [musicUrl, setMusicUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadInvitations() {
@@ -24,8 +26,14 @@ export default function MusicPage() {
         setMusicUrl(data[0].musicUrl ?? "");
       }
     }
-    loadInvitations().catch(() => toast.error("Gagal memuat undangan"));
+    loadInvitations().catch(() => toast.error("Gagal memuat undangan")).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <MusicPageSkeleton />;
+
+  function MusicPageSkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><SelectSkeleton /><CardSkeleton /></div>;
+  }
 
   const changeInvitation = (id: string) => {
     setSelectedInvitationId(id);

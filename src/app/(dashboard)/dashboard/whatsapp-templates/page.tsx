@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { MessageCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, CardSkeleton, ListSkeleton } from "@/components/ui/dashboard-skeleton";
 
 const initialTemplates = [
   { title: "Undangan Utama", body: "Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}" },
@@ -22,10 +23,17 @@ interface WhatsAppLogRow {
 export default function WhatsAppTemplatesPage() {
   const [templates, setTemplates] = useState(initialTemplates);
   const [logs, setLogs] = useState<WhatsAppLogRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios.get<WhatsAppLogRow[]>("/api/guests/whatsapp/logs").then((response) => setLogs(response.data)).catch(() => null);
+    axios.get<WhatsAppLogRow[]>("/api/guests/whatsapp/logs").then((response) => setLogs(response.data)).catch(() => null).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <WhatsAppSkeleton />;
+
+  function WhatsAppSkeleton() {
+    return <div className="space-y-8"><TitleSkeleton /><div className="grid gap-6 xl:grid-cols-[1fr_360px]"><div className="grid gap-4 xl:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}</div><CardSkeleton /></div></div>;
+  }
 
   return (
     <div className="space-y-8">

@@ -33,7 +33,7 @@ function PreviewContent() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white" suppressHydrationWarning>
       {sections.map((section, idx) => (
         <SectionRenderer
           key={`${section}-${idx}`}

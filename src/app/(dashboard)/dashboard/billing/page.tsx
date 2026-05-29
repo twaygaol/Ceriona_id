@@ -7,6 +7,7 @@ import { CheckCircle2, CreditCard, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBillingPlan } from "@/services/billingPlanService";
+import { TitleSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 const plans = [
   { name: "Free", price: "Rp0", desc: "Untuk mulai membuat undangan sederhana.", features: ["1 undangan", "Template basic", "RSVP basic", "Link share"] },
@@ -17,14 +18,23 @@ const plans = [
 export default function BillingPage() {
   const [orders, setOrders] = useState<Array<{ id: string; plan: string; amount: number; status: string; paymentMethod?: string | null; createdAt: string }>>([]);
   const [subscription, setSubscription] = useState<{ plan: string; status: string; expiresAt?: string | null } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("/api/orders").then((response) => setOrders(response.data)).catch(() => null);
-    axios.get("/api/dashboard/overview").then((response) => setSubscription(response.data.subscription ?? null)).catch(() => null);
+    Promise.all([
+      axios.get("/api/orders").then((response) => setOrders(response.data)).catch(() => null),
+      axios.get("/api/dashboard/overview").then((response) => setSubscription(response.data.subscription ?? null)).catch(() => null),
+    ]).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <BillingSkeleton />;
 
   const currentPaidOrder = orders.find((order) => order.status === "paid") ?? null;
   const activePlan = getBillingPlan(subscription?.plan ?? currentPaidOrder?.plan ?? "free");
+
+  function BillingSkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><CardSkeleton /><div className="grid gap-6 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}</div><CardSkeleton /></div>;
+  }
 
   const createOrder = async (plan: "free" | "premium" | "pro") => {
     try {

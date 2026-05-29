@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TitleSkeleton, SelectSkeleton, CardSkeleton } from "@/components/ui/dashboard-skeleton";
 
 interface InvitationOption { id: string; title: string; brideName: string; groomName: string }
 interface LiveStreamItem { id: string; provider: string; title: string; url: string; scheduledAt?: string | null; status: string }
@@ -30,6 +31,7 @@ export default function LiveStreamingPage() {
   const [streams, setStreams] = useState<LiveStreamItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [featureLocked, setFeatureLocked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     register,
@@ -44,8 +46,10 @@ export default function LiveStreamingPage() {
       setInvitations(data);
       if (data[0]) setSelectedInvitationId(data[0].id);
     }
-    loadInvitations().catch(() => toast.error("Gagal memuat undangan"));
+    loadInvitations().catch(() => toast.error("Gagal memuat undangan")).finally(() => setIsLoading(false));
   }, []);
+
+  if (isLoading) return <LiveStreamSkeleton />;
 
   useEffect(() => {
     async function loadStreams() {
@@ -76,6 +80,10 @@ export default function LiveStreamingPage() {
       setIsSaving(false);
     }
   };
+
+  function LiveStreamSkeleton() {
+    return <div className="space-y-6"><TitleSkeleton /><SelectSkeleton /><div className="grid gap-6 xl:grid-cols-[420px_1fr]"><CardSkeleton /><CardSkeleton /></div></div>;
+  }
 
   const deleteStream = async (streamId: string) => {
     try {

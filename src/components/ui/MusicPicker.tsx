@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileAudio, Link2, Music, Pause, Play, Trash2, Upload, X } from "lucide-react";
+import { FileAudio, Link2, Music, Pause, Play, Trash2, Upload, X, Search } from "lucide-react";
 import { FileUpload } from "@/components/ui/FileUpload";
+import { MusicSearch } from "@/components/ui/MusicSearch";
+import type { MusicTrack } from "@/services/musicService";
 
 interface MusicPickerProps {
   value?: string;
@@ -10,11 +12,12 @@ interface MusicPickerProps {
 }
 
 export function MusicPicker({ value, onChange }: MusicPickerProps) {
-  const [mode, setMode] = useState<"url" | "upload" | null>(null);
+  const [mode, setMode] = useState<"url" | "upload" | "search" | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [urlError, setUrlError] = useState("");
   const [previewing, setPreviewing] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<MusicTrack | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleUrlSubmit = () => {
@@ -31,6 +34,13 @@ export function MusicPicker({ value, onChange }: MusicPickerProps) {
     onChange(trimmed);
     setMode(null);
     setUrlInput("");
+  };
+
+  const handleSearchSelect = (track: MusicTrack) => {
+    setSelectedTrack(track);
+    onChange(track.audioUrl);
+    setMode(null);
+    stopPreview();
   };
 
   const handlePreview = () => {
@@ -73,14 +83,19 @@ export function MusicPicker({ value, onChange }: MusicPickerProps) {
             {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </button>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-brown">External URL</p>
-            <p className="truncate text-xs text-brown-light">{value}</p>
+            <p className="truncate text-sm font-medium text-brown">
+              {selectedTrack ? selectedTrack.title : "External URL"}
+            </p>
+            <p className="truncate text-xs text-brown-light">
+              {selectedTrack ? selectedTrack.artist : value}
+            </p>
           </div>
           <button
             type="button"
             onClick={() => {
               stopPreview();
               onChange("");
+              setSelectedTrack(null);
             }}
             className="rounded-full p-1.5 text-red-400 transition hover:bg-red-50 hover:text-red-600"
           >
@@ -90,7 +105,15 @@ export function MusicPicker({ value, onChange }: MusicPickerProps) {
       ) : null}
 
       {!value && !mode && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            type="button"
+            onClick={() => setMode("search")}
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gold/30 bg-cream px-4 py-5 text-sm text-brown-light transition hover:border-gold/50 hover:bg-gold/5"
+          >
+            <Search className="h-6 w-6" />
+            <span>Cari Musik</span>
+          </button>
           <button
             type="button"
             onClick={() => setMode("url")}
@@ -108,6 +131,13 @@ export function MusicPicker({ value, onChange }: MusicPickerProps) {
             <span>Upload File</span>
           </button>
         </div>
+      )}
+
+      {mode === "search" && (
+        <MusicSearch
+          onSelect={handleSearchSelect}
+          onClose={() => setMode(null)}
+        />
       )}
 
       {mode === "url" && (
