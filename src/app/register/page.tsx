@@ -5,6 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import axios, { AxiosError } from "axios";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Nama minimal 2 karakter"),
+  email: z.string().email("Email tidak valid"),
+});
+
+type RegisterValues = z.infer<typeof registerSchema>;
 
 function RegisterForm() {
   const router = useRouter();
@@ -14,16 +24,18 @@ function RegisterForm() {
   const [accountInfo, setAccountInfo] = useState<{ username: string; email: string; temporaryPassword: string } | null>(null);
   const [emailDelivery, setEmailDelivery] = useState<{ verification?: { delivered?: boolean; provider?: string }; account?: { delivered?: boolean; provider?: string } } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+  });
 
-    const formData = new FormData(e.currentTarget);
+  const onSubmit = async (data: RegisterValues) => {
+    setIsLoading(true);
     try {
-      const response = await axios.post("/api/auth/register", {
-        name: formData.get("name"),
-        email: formData.get("email"),
-      });
+      const response = await axios.post("/api/auth/register", data);
       setVerificationUrl(response.data.verificationUrl ?? null);
       setAccountInfo(response.data.account ?? null);
       setEmailDelivery(response.data.emailDelivery ?? null);
@@ -58,25 +70,25 @@ function RegisterForm() {
           <h1 className="font-serif text-2xl text-brown mt-4">Buat Akun Baru</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="block text-sm text-brown mb-1">Nama Lengkap</label>
             <input
               type="text"
-              name="name"
-              required
-              className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold"
+              {...register("name")}
+              className="input-premium"
             />
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
 
           <div>
             <label className="block text-sm text-brown mb-1">Email</label>
             <input
               type="email"
-              name="email"
-              required
-              className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold"
+              {...register("email")}
+              className="input-premium"
             />
+            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
           </div>
 
           <button

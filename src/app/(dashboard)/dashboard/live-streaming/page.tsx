@@ -4,21 +4,39 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { PlayCircle, Radio, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvitationOption { id: string; title: string; brideName: string; groomName: string }
 interface LiveStreamItem { id: string; provider: string; title: string; url: string; scheduledAt?: string | null; status: string }
 
-const defaultForm = { provider: "youtube", title: "Live Wedding Ceremony", url: "", scheduledAt: "", status: "scheduled" };
+const liveStreamSchema = z.object({
+  provider: z.string().min(1, "Provider wajib dipilih"),
+  title: z.string().min(1, "Judul wajib diisi"),
+  url: z.string().url("URL tidak valid"),
+  scheduledAt: z.string().optional(),
+  status: z.string().min(1),
+});
+
+type LiveStreamValues = z.input<typeof liveStreamSchema>;
+const defaultValues: LiveStreamValues = { provider: "youtube", title: "Live Wedding Ceremony", url: "", scheduledAt: "", status: "scheduled" };
 
 export default function LiveStreamingPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [streams, setStreams] = useState<LiveStreamItem[]>([]);
-  const [form, setForm] = useState(defaultForm);
   const [isSaving, setIsSaving] = useState(false);
   const [featureLocked, setFeatureLocked] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<LiveStreamValues>({ resolver: zodResolver(liveStreamSchema), defaultValues });
 
   useEffect(() => {
     async function loadInvitations() {
@@ -39,13 +57,13 @@ export default function LiveStreamingPage() {
     loadStreams().catch(() => setFeatureLocked(true));
   }, [selectedInvitationId]);
 
-  const saveStream = async () => {
+  const onSubmit = async (values: LiveStreamValues) => {
     if (!selectedInvitationId) return;
     setIsSaving(true);
     try {
-      await axios.post(`/api/live-streams/${selectedInvitationId}`, form);
+      await axios.post(`/api/live-streams/${selectedInvitationId}`, values);
       toast.success("Live stream ditambahkan");
-      setForm(defaultForm);
+      reset(defaultValues);
       const { data } = await axios.get<LiveStreamItem[]>(`/api/live-streams/${selectedInvitationId}`);
       setStreams(data);
     } catch (error) {
@@ -91,24 +109,43 @@ export default function LiveStreamingPage() {
         <Card className="border-gold/15 bg-white/80 backdrop-blur-xl">
           <CardHeader><CardTitle className="flex items-center gap-2"><Radio className="size-5" /> Tambah Live</CardTitle><CardDescription>Isi jadwal dan link live streaming.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <select value={form.provider} onChange={(event) => setForm((current) => ({ ...current, provider: event.target.value }))} className="input-premium">
-              <option value="youtube">YouTube Live</option>
-              <option value="zoom">Zoom</option>
-              <option value="meet">Google Meet</option>
-              <option value="instagram">Instagram Live</option>
-              <option value="custom">Custom URL</option>
-            </select>
-            <Input label="Judul" value={form.title} onChange={(title) => setForm((current) => ({ ...current, title }))} />
-            <Input label="URL Live" value={form.url} placeholder="https://..." onChange={(url) => setForm((current) => ({ ...current, url }))} />
-            <Input label="Jadwal" type="datetime-local" value={form.scheduledAt} onChange={(scheduledAt) => setForm((current) => ({ ...current, scheduledAt }))} />
-            <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))} className="input-premium">
-              <option value="scheduled">Scheduled</option>
-              <option value="live">Live</option>
-              <option value="ended">Ended</option>
-            </select>
-            <Button type="button" disabled={isSaving || featureLocked} onClick={saveStream} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
-              <PlayCircle className="size-4" /> {isSaving ? "Menyimpan..." : "Simpan Live"}
-            </Button>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Provider</span>
+                <select {...register("provider")} className="input-premium">
+                  <option value="youtube">YouTube Live</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="meet">Google Meet</option>
+                  <option value="instagram">Instagram Live</option>
+                  <option value="custom">Custom URL</option>
+                </select>
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Judul</span>
+                <input {...register("title")} className="input-premium" />
+                {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">URL Live</span>
+                <input {...register("url")} className="input-premium" placeholder="https://..." />
+                {errors.url && <p className="text-xs text-red-500">{errors.url.message}</p>}
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Jadwal</span>
+                <input type="datetime-local" {...register("scheduledAt")} className="input-premium" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Status</span>
+                <select {...register("status")} className="input-premium">
+                  <option value="scheduled">Scheduled</option>
+                  <option value="live">Live</option>
+                  <option value="ended">Ended</option>
+                </select>
+              </label>
+              <Button type="submit" disabled={isSaving || featureLocked} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
+                <PlayCircle className="size-4" /> {isSaving ? "Menyimpan..." : "Simpan Live"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
@@ -134,8 +171,4 @@ export default function LiveStreamingPage() {
       </div>
     </div>
   );
-}
-
-function Input({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; type?: string }) {
-  return <label className="block space-y-2"><span className="text-sm font-medium text-brown">{label}</span><input type={type} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="input-premium" /></label>;
 }

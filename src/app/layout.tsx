@@ -1,6 +1,5 @@
 // src/app/layout.tsx
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
-import { LenisProvider } from "@/components/layout/LenisProvider";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -18,10 +17,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <LenisProvider>
-            {children}
-            <Toaster position="top-right" richColors />
-          </LenisProvider>
+          {children}
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

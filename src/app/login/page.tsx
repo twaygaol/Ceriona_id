@@ -1,25 +1,41 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Minimal 6 karakter"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginValues) => {
     setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
     const result = await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
+      email: data.email,
+      password: data.password,
       redirect: false,
     });
 
@@ -43,27 +59,27 @@ function LoginForm() {
           <p className="text-brown-light text-sm mt-2">Selamat datang kembali!</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="block text-sm text-brown mb-1">Email</label>
             <input
               type="email"
-              name="email"
-              required
-              className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold"
+              {...register("email")}
+              className="input-premium"
               placeholder="email@example.com"
             />
+            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
           </div>
 
           <div>
             <label className="block text-sm text-brown mb-1">Password</label>
             <input
               type="password"
-              name="password"
-              required
-              className="w-full px-4 py-2 border border-gold/20 rounded-lg focus:outline-none focus:border-gold"
+              {...register("password")}
+              className="input-premium"
               placeholder="••••••••"
             />
+            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
           </div>
 
           <button

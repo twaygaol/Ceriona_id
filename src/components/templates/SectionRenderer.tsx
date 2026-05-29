@@ -99,32 +99,37 @@ const OpeningSection = memo(function OpeningSection({ invitation, template }: Te
   const bgImage = template?.layout?.opening?.backgroundImage;
 
   if (isThemed) {
-    const bgColor = t === "sunda-priangan" ? "#1E2E20" : t === "adat-batak-ulos" ? "#0E0808" : t === "adat-jawa-classic-luxury" ? "#F8F1DE" : "#140A06";
-    const frameColor = t === "sunda-priangan" ? "rgba(201,168,76,0.2)" : t === "adat-batak-ulos" ? "rgba(185,28,28,0.3)" : t === "adat-jawa-classic-luxury" ? "rgba(201,166,70,0.25)" : "rgba(214,169,79,0.25)";
-    const frameColor2 = t === "sunda-priangan" ? "rgba(122,155,94,0.1)" : t === "adat-batak-ulos" ? "rgba(201,168,76,0.15)" : t === "adat-jawa-classic-luxury" ? "rgba(201,166,70,0.12)" : "rgba(214,169,79,0.12)";
+    // Use theme-specific backgrounds from themeStyles
+    const bgColor = t === "sunda-priangan" ? "#1E2E20" 
+      : t === "adat-batak-ulos" ? "#1A0A0B" 
+      : t === "adat-jawa-classic-luxury" ? s.sectionBg 
+      : "#140A06";
+    
+    const frameColor = `${s.goldColor}33`; // 20% opacity
+    const frameColor2 = `${s.accentColor}1a`; // 10% opacity
 
     return (
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 text-center" style={{ background: bgColor }}>
-        {bgImage && <Image src={bgImage} alt="" fill priority sizes="100vw" className="scale-105 object-cover opacity-35" />}
-        <div className="absolute inset-0" style={{
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 text-center" style={{ background: bgColor }} aria-label="Opening section">
+        {bgImage && <Image src={bgImage} alt="" fill priority sizes="100vw" className="scale-105 object-cover opacity-35" aria-hidden="true" />}
+        <div className="absolute inset-0" aria-hidden="true" style={{
           background: bgImage ? `linear-gradient(to bottom, ${bgColor}80, ${bgColor}a0, ${bgColor}e6)` : s.isThemed
             ? `radial-gradient(ellipse 80% 60% at 50% 30%, ${t === "sunda-priangan" ? "rgba(122,155,94,0.3)" : t === "adat-batak-ulos" ? "rgba(139,30,30,0.45)" : t === "adat-jawa-classic-luxury" ? "rgba(201,166,70,0.25)" : "rgba(214,169,79,0.35)"} 0%, transparent 70%)`
             : "",
         }} />
         {!bgImage && t === "sunda-priangan" && (
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `repeating-linear-gradient(-45deg,#C9A84C 0px,transparent 1px,transparent 20px,#C9A84C 21px,transparent 22px)` }} />
+          <div className="absolute inset-0 opacity-[0.04]" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(-45deg,${s.goldColor} 0px,transparent 1px,transparent 20px,${s.goldColor} 21px,transparent 22px)` }} />
         )}
         {!bgImage && t === "adat-jawa-royal" && (
-          <div className="absolute inset-0 opacity-8" style={{ backgroundImage: `repeating-linear-gradient(-30deg,#D6A94F 0px,transparent 1px,transparent 16px,#D6A94F 17px,transparent 18px),repeating-linear-gradient(30deg,#D6A94F 0px,transparent 1px,transparent 16px,#D6A94F 17px,transparent 18px)` }} />
+          <div className="absolute inset-0 opacity-8" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(-30deg,${s.goldColor} 0px,transparent 1px,transparent 16px,${s.goldColor} 17px,transparent 18px),repeating-linear-gradient(30deg,${s.goldColor} 0px,transparent 1px,transparent 16px,${s.goldColor} 17px,transparent 18px)` }} />
         )}
         {!bgImage && t === "adat-batak-ulos" && (
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `repeating-linear-gradient(0deg,#B91C1C 0px,#B91C1C 4px,transparent 4px,transparent 20px),repeating-linear-gradient(90deg,#B91C1C 0px,#B91C1C 2px,transparent 2px,transparent 32px)` }} />
+          <div className="absolute inset-0 opacity-15" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(0deg,rgba(201,168,76,0.4) 0px,rgba(201,168,76,0.4) 2px,transparent 2px,transparent 16px),repeating-linear-gradient(90deg,rgba(92,26,27,0.5) 0px,rgba(92,26,27,0.5) 2px,transparent 2px,transparent 28px)` }} />
         )}
         <DynamicHeader template={template} />
         {t !== "adat-jawa-classic-luxury" && (
           <>
-            <div className="absolute inset-6" style={{ border: `1px solid ${frameColor}` }} />
-            <div className="absolute inset-10" style={{ border: `1px solid ${frameColor2}` }} />
+            <div className="absolute inset-6" aria-hidden="true" style={{ border: `1px solid ${frameColor}` }} />
+            <div className="absolute inset-10" aria-hidden="true" style={{ border: `1px solid ${frameColor2}` }} />
           </>
         )}
         <DynamicCorner className="left-0 top-0" template={template} />
@@ -132,9 +137,9 @@ const OpeningSection = memo(function OpeningSection({ invitation, template }: Te
         <DynamicCorner className="bottom-0 left-0 scale-y-[-1]" template={template} />
         <DynamicCorner className="bottom-0 right-0 scale-[-1]" template={template} />
         {t === "sunda-priangan" && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 overflow-hidden" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 64" preserveAspectRatio="none" className="h-full w-full">
-              <g fill="#C9A84C" opacity="0.35">
+              <g fill={s.goldColor} opacity="0.35">
                 {Array.from({ length: 50 }, (_, i) => {
                   const x = i * 16;
                   return <polygon key={i} points={`${x + 8},64 ${x + 24},64 ${x + 16},48`} />;
@@ -145,26 +150,26 @@ const OpeningSection = memo(function OpeningSection({ invitation, template }: Te
         )}
 
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }} className="relative z-10 max-w-3xl">
-          <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center" style={{ border: `1px solid ${s.goldColor}`, background: `rgba(${t === "sunda-priangan" ? "201,168,76" : t === "adat-batak-ulos" ? "185,28,28" : t === "adat-jawa-classic-luxury" ? "201,166,70" : "214,169,79"},0.08)` }}>
+          <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center" style={{ border: `1px solid ${s.goldColor}`, background: `${s.goldColor}14` }}>
             <DynamicFlower template={template} className="size-8" />
           </div>
           <p className="mb-5 text-xs font-semibold uppercase tracking-[0.55em]" style={{ color: s.goldColor }}>
-            {template?.layout?.opening?.eyebrow || (t === "sunda-priangan" ? "Salam Urang Sunda" : t === "adat-jawa-classic-luxury" ? "Pawiwahan" : t === "adat-jawa-royal" ? "Pawiwahan" : "Horas Invitation")}
+            {template?.layout?.opening?.eyebrow || s.openingQuote.split('.')[0]}
           </p>
-          <div className="relative mx-auto mb-6 h-px w-40">
+          <div className="relative mx-auto mb-6 h-px w-40" aria-hidden="true">
             <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg,transparent,${s.goldColor},transparent)` }} />
-            <div style={{ position: "absolute", left: "50%", top: "-3px", width: "6px", height: "6px", background: t === "sunda-priangan" ? "#7A9B5E" : s.goldColor, transform: "translateX(-50%) rotate(45deg)" }} />
+            <div style={{ position: "absolute", left: "50%", top: "-3px", width: "6px", height: "6px", background: s.accentColor, transform: "translateX(-50%) rotate(45deg)" }} />
           </div>
-          <h1 className="font-serif text-5xl leading-none sm:text-7xl lg:text-8xl" style={{ color: t === "adat-jawa-classic-luxury" ? "#5B4A2D" : "#F5EFE0" }}>
+          <h1 className="font-serif text-5xl leading-none sm:text-7xl lg:text-8xl" style={{ color: s.headingColor }}>
             {invitation.brideName}
           </h1>
           <p className="my-4 font-serif text-3xl" style={{ color: s.goldColor }}>&amp;</p>
-          <h1 className="font-serif text-5xl leading-none sm:text-7xl lg:text-8xl" style={{ color: t === "adat-jawa-classic-luxury" ? "#5B4A2D" : "#F5EFE0" }}>
+          <h1 className="font-serif text-5xl leading-none sm:text-7xl lg:text-8xl" style={{ color: s.headingColor }}>
             {invitation.groomName}
           </h1>
-          <div className="relative mx-auto mt-6 h-px w-40">
+          <div className="relative mx-auto mt-6 h-px w-40" aria-hidden="true">
             <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg,transparent,${s.goldColor},transparent)` }} />
-            <div style={{ position: "absolute", left: "50%", top: "-3px", width: "6px", height: "6px", background: t === "sunda-priangan" ? "#7A9B5E" : s.goldColor, transform: "translateX(-50%) rotate(45deg)" }} />
+            <div style={{ position: "absolute", left: "50%", top: "-3px", width: "6px", height: "6px", background: s.accentColor, transform: "translateX(-50%) rotate(45deg)" }} />
           </div>
           <p className="mx-auto mt-6 max-w-md text-sm leading-7" style={{ color: s.bodyColorLight }}>{s.openingQuote}</p>
         </motion.div>
@@ -204,20 +209,20 @@ const HeroSection = memo(function HeroSection({ invitation, template }: Template
   const eyebrowText = getThemeEyebrowText(template);
 
   return (
-    <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-4 pb-14 pt-5 text-center" style={{ background: t === "sunda-priangan" ? "#F5EFE0" : "none" }}>
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pb-14 pt-5 text-center" style={{ background: t === "sunda-priangan" ? s.sectionBg : "none" }} aria-label="Hero section">
       {heroImage && (
         <Image src={heroImage} alt={`Foto ${invitation.brideName} dan ${invitation.groomName}`} fill priority sizes="100vw" className="scale-105 object-cover" />
       )}
 
       {t === "sunda-priangan" && (
         <>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(30,46,32,0.45), rgba(42,61,46,0.5), rgba(30,46,32,0.88))" }} />
-          <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: `repeating-linear-gradient(-30deg,#C9A84C 0px,transparent 1px,transparent 18px,#C9A84C 19px,transparent 20px),repeating-linear-gradient(30deg,#7A9B5E 0px,transparent 1px,transparent 18px,#7A9B5E 19px,transparent 20px)` }} />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 overflow-hidden">
+          <div className="absolute inset-0" aria-hidden="true" style={{ background: "linear-gradient(to bottom, rgba(30,46,32,0.45), rgba(42,61,46,0.5), rgba(30,46,32,0.88))" }} />
+          <div className="absolute inset-0 opacity-[0.06]" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(-30deg,${s.goldColor} 0px,transparent 1px,transparent 18px,${s.goldColor} 19px,transparent 20px),repeating-linear-gradient(30deg,${s.accentColor} 0px,transparent 1px,transparent 18px,${s.accentColor} 19px,transparent 20px)` }} />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 overflow-hidden" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 32" preserveAspectRatio="none" className="h-full w-full">
               {Array.from({ length: 50 }, (_, i) => {
                 const x = i * 16;
-                return <polygon key={i} points={`${x + 8},32 ${x + 24},32 ${x + 16},16`} fill="#C9A84C" opacity={i % 2 === 0 ? "0.45" : "0.2"} />;
+                return <polygon key={i} points={`${x + 8},32 ${x + 24},32 ${x + 16},16`} fill={s.goldColor} opacity={i % 2 === 0 ? "0.45" : "0.2"} />;
               })}
             </svg>
           </div>
@@ -226,21 +231,22 @@ const HeroSection = memo(function HeroSection({ invitation, template }: Template
       {t === "adat-jawa-classic-luxury" && (
         <>
         <div
-        className="absolute inset-0 -z-20 opacity-90"
+        className="absolute inset-0 opacity-90"
+        aria-hidden="true"
         style={{
-          background: "url('/ornament/header-05.svg') center/cover no-repeat",
+          background: "url('/ornament/header-04.svg') center/cover no-repeat",
         }}
       />
 
       {/* ivory wash */}
-      <div className="absolute inset-0 -z-20 bg-[#F8F1DE]/40" />
+      <div className="absolute inset-0 -z-20 bg-[#F8F1DE]/40" aria-hidden="true" />
 
       {/* soft vignette */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_28%,rgba(245, 0, 0, 0.58),transparent_34%),linear-gradient(to_bottom,rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.96)_78%,#F8F1DE)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_28%,rgba(245, 0, 0, 0.58),transparent_34%),linear-gradient(to_bottom,rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.96)_78%,#F8F1DE)]" aria-hidden="true" />
 
       {/* frame */}
-      <div className="pointer-events-none absolute inset-4 border border-[#C9A646]/20 sm:inset-6" />
-      <div className="pointer-events-none absolute inset-7 border border-[#C9A646]/10 sm:inset-10" />
+      <div className="pointer-events-none absolute inset-4 border border-[#C9A646]/20 sm:inset-6" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-7 border border-[#C9A646]/10 sm:inset-10" aria-hidden="true" />
 
       {/* corners */}
       <DynamicCorner className="left-0 top-0 opacity-50" template={template} />
@@ -289,26 +295,47 @@ const HeroSection = memo(function HeroSection({ invitation, template }: Template
       )}
       {t === "adat-batak-ulos" && (
         <>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(14,8,8,0.55), rgba(14,8,8,0.6), rgba(14,8,8,0.88))" }} />
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `repeating-linear-gradient(0deg, #B91C1C 0px, #B91C1C 3px, transparent 3px, transparent 24px)` }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(26,10,11,0.5), rgba(92,26,27,0.45), rgba(26,10,11,0.88))" }} />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `repeating-linear-gradient(0deg, #C9A84C 0px, #C9A84C 2px, transparent 2px, transparent 20px), repeating-linear-gradient(90deg, #5C1A1B 0px, #5C1A1B 2px, transparent 2px, transparent 28px)` }} />
         </>
       )}
       {(t === "sunda-priangan" || t === "adat-jawa-classic-luxury") && (
-        <div className="absolute inset-x-6 bottom-8 h-px" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
+        <>
+          <div className="absolute inset-x-6 bottom-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
+          <div className="absolute inset-x-6 top-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
+        </>
+      )}
+      {t === "adat-jawa-royal" && (
+        <>
+          <div className="absolute inset-x-6 bottom-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
+          <div className="absolute inset-x-6 top-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
+        </>
+      )}
+      {t === "adat-batak-ulos" && (
+        <>
+          <div className="absolute inset-x-6 bottom-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${s.accentColor} 40%,${s.accentColor} 60%,transparent)` }} />
+          <div className="absolute inset-x-6 top-8 h-px" aria-hidden="true" style={{ background: `linear-gradient(90deg,transparent,${s.buttonBg} 40%,${s.buttonBg} 60%,transparent)` }} />
+        </>
       )}
       {(t === "sunda-priangan" || t === "adat-jawa-classic-luxury") && (
         <div className="absolute inset-x-6 top-8 h-px" style={{ background: `linear-gradient(90deg,transparent,${goldColor} 40%,${goldColor} 60%,transparent)` }} />
       )}
       {t === "adat-jawa-royal" && (
         <>
-          <div className="absolute inset-x-6 bottom-8 h-px" style={{ background: "linear-gradient(90deg,transparent,#D6A94F 40%,#D6A94F 60%,transparent)" }} />
-          <div className="absolute inset-x-6 top-8 h-px" style={{ background: "linear-gradient(90deg,transparent,#D6A94F 40%,#D6A94F 60%,transparent)" }} />
+          <div className="absolute inset-0" aria-hidden="true" style={{ background: "linear-gradient(to bottom, rgba(20,10,6,0.5), rgba(43,22,14,0.55), rgba(20,10,6,0.85))" }} />
+          <div className="absolute inset-0 opacity-12" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(-25deg, transparent 0px, transparent 12px, ${s.goldColor} 12px, ${s.goldColor} 13px, transparent 13px, transparent 24px)` }} />
+        </>
+      )}
+      {t === "adat-batak-ulos" && (
+        <>
+          <div className="absolute inset-0" aria-hidden="true" style={{ background: "linear-gradient(to bottom, rgba(26,10,11,0.5), rgba(92,26,27,0.45), rgba(26,10,11,0.88))" }} />
+          <div className="absolute inset-0 opacity-15" aria-hidden="true" style={{ backgroundImage: `repeating-linear-gradient(0deg, #C9A84C 0px, #C9A84C 2px, transparent 2px, transparent 20px), repeating-linear-gradient(90deg, #5C1A1B 0px, #5C1A1B 2px, transparent 2px, transparent 28px)` }} />
         </>
       )}
       {t === "adat-batak-ulos" && (
         <>
           <div className="absolute inset-x-6 bottom-8 h-px" style={{ background: "linear-gradient(90deg,transparent,#C9A84C 40%,#C9A84C 60%,transparent)" }} />
-          <div className="absolute inset-x-6 top-8 h-px" style={{ background: "linear-gradient(90deg,transparent,#B91C1C 40%,#B91C1C 60%,transparent)" }} />
+          <div className="absolute inset-x-6 top-8 h-px" style={{ background: "linear-gradient(90deg,transparent,#5C1A1B 40%,#5C1A1B 60%,transparent)" }} />
         </>
       )}
       {t !== "sunda-priangan" && t !== "adat-jawa-classic-luxury" && t !== "adat-jawa-royal" && t !== "adat-batak-ulos" && (
@@ -366,10 +393,10 @@ const HeroSection = memo(function HeroSection({ invitation, template }: Template
             {/* ornament svg overlay */}
             <div
               className="pointer-events-none absolute inset-0 z-30 opacity-70"
-              style={{
-                background: "url('/ornament/header-06.svg') center/cover no-repeat",
-                mixBlendMode: "multiply",
-              }}
+              // style={{
+              //   background: "url('/ornament/header-07.svg') center/cover no-repeat",
+              //   mixBlendMode: "multiply",
+              // }}
             />
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-[#F8F1DE]/70" />
@@ -837,9 +864,11 @@ const FooterSection = memo(function FooterSection({ invitation, template }: Temp
       ? "linear-gradient(to bottom, #F8F1DE, #F5EBD3)"
       : t === "adat-jawa-royal"
       ? "linear-gradient(to bottom, #2B160E, #140A06)"
+      : t === "adat-batak-ulos"
+      ? "linear-gradient(to bottom, #1A0A0B, #0D0606)"
       : "linear-gradient(to bottom, #151010, #0E0808)";
-    const borderColor = t === "adat-jawa-classic-luxury" ? "#C9A646" : t === "adat-jawa-royal" ? "#D6A94F" : "#B91C1C";
-    const bgColor = t === "adat-jawa-classic-luxury" ? "#F8F1DE" : t === "adat-jawa-royal" ? "#140A06" : "#0E0808";
+    const borderColor = t === "adat-jawa-classic-luxury" ? "#C9A646" : t === "adat-jawa-royal" ? "#D6A94F" : t === "adat-batak-ulos" ? "#C9A84C" : "#B91C1C";
+    const bgColor = t === "adat-jawa-classic-luxury" ? "#F8F1DE" : t === "adat-jawa-royal" ? "#140A06" : t === "adat-batak-ulos" ? "#1A0A0B" : "#0E0808";
 
     return (
       <footer className="relative overflow-hidden text-center" style={{ background: bgColor }}>
@@ -848,11 +877,11 @@ const FooterSection = memo(function FooterSection({ invitation, template }: Temp
           <DynamicCorner className="left-0 top-0" template={template} />
           <DynamicCorner className="right-0 top-0 scale-x-[-1]" template={template} />
           <div className="relative mx-auto max-w-3xl">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center" style={{ border: `1px solid ${s.goldColor}`, background: `rgba(${t === "adat-jawa-classic-luxury" ? "201,166,70" : t === "adat-jawa-royal" ? "214,169,79" : "185,28,28"},0.1)` }}>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center" style={{ border: `1px solid ${s.goldColor}`, background: `rgba(${t === "adat-jawa-classic-luxury" ? "201,166,70" : t === "adat-jawa-royal" ? "214,169,79" : t === "adat-batak-ulos" ? "92,26,27" : "185,28,28"},0.15)` }}>
               <DynamicFlower template={template} className="size-6" />
             </div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.48em]" style={{ color: s.accentColor }}>
-              {t === "adat-jawa-classic-luxury" ? "Matur Nuwun" : t === "adat-jawa-royal" ? "Pawiwahan — Matur Nuwun" : "Horas — Terima Kasih"}
+              {t === "adat-jawa-classic-luxury" ? "Matur Nuwun" : t === "adat-jawa-royal" ? "Pawiwahan — Matur Nuwun" : t === "adat-batak-ulos" ? "Horas — Mauliate" : "Horas — Terima Kasih"}
             </p>
             <div className="mx-auto mb-5 h-px w-24" style={{ background: `linear-gradient(90deg,transparent,${s.goldColor},transparent)` }} />
             <p className="font-serif text-5xl" style={{ color: s.headingColor }}>{invitation.brideName} <span style={{ color: s.goldColor }}>&</span> {invitation.groomName}</p>

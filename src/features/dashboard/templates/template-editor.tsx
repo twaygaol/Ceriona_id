@@ -55,7 +55,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { templateThemePresets } from "@/services/templateThemeService";
-import type { DashboardTemplate, TemplateSection } from "@/types/template";
+import { templateCategories, type DashboardTemplate, type TemplateSection } from "@/types/template";
 
 const cormorant = Cormorant_Garamond({ subsets: ["latin"], variable: "--font-cormorant" });
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
@@ -72,7 +72,7 @@ const formSchema = z.object({
     .min(3, "Slug minimal 3 karakter")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Gunakan huruf kecil, angka, dan tanda hubung"),
   description: z.string().max(240, "Deskripsi maksimal 240 karakter").optional(),
-  category: z.enum(["wedding", "birthday", "graduation", "custom"]),
+  category: z.enum(templateCategories),
   isPremium: z.boolean(),
   isFeatured: z.boolean(),
   visualTheme: z.string().optional(),

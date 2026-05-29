@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { templateCategories } from "@/types/template";
 
 const templateSections = [
   "opening", "hero", "quote", "countdown", "story", 
@@ -22,7 +23,7 @@ const templateSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   description: z.string().optional().or(z.literal("")),
-  category: z.enum(["wedding", "birthday", "graduation", "custom"]),
+  category: z.enum(templateCategories),
   thumbnail: z.string().url().optional().or(z.literal("")),
   previewImage: z.string().url().optional().or(z.literal("")),
   layout: z

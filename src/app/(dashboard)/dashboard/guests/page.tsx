@@ -4,45 +4,42 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Download, MessageCircle, Plus, Search, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface InvitationOption {
-  id: string;
-  title: string;
-  brideName: string;
-  groomName: string;
-}
+interface InvitationOption { id: string; title: string; brideName: string; groomName: string }
+interface GuestRow { id: string; name: string; phone?: string | null; email?: string | null; group?: string | null; status: string; invitationUrl?: string | null }
+interface WhatsAppSendResult { guestId: string; name: string; phone: string; provider: "fonnte" | "wa_link"; status: "sent" | "failed" | "fallback_link"; url?: string }
 
-interface GuestRow {
-  id: string;
-  name: string;
-  phone?: string | null;
-  email?: string | null;
-  group?: string | null;
-  status: string;
-  invitationUrl?: string | null;
-}
+const guestSchema = z.object({
+  name: z.string().min(1, "Nama tamu wajib diisi"),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  group: z.string().optional(),
+});
 
-interface WhatsAppSendResult {
-  guestId: string;
-  name: string;
-  phone: string;
-  provider: "fonnte" | "wa_link";
-  status: "sent" | "failed" | "fallback_link";
-  url?: string;
-}
+type GuestValues = z.input<typeof guestSchema>;
+const defaultGuestValues: GuestValues = { name: "", phone: "", email: "", group: "" };
 
 export default function GuestsPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [guests, setGuests] = useState<GuestRow[]>([]);
-  const [newGuest, setNewGuest] = useState({ name: "", phone: "", email: "", group: "" });
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [message, setMessage] = useState("Halo {name}, kami mengundang Anda untuk hadir di acara kami: {url}");
   const [lastResults, setLastResults] = useState<WhatsAppSendResult[]>([]);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<GuestValues>({ resolver: zodResolver(guestSchema), defaultValues: defaultGuestValues });
 
   useEffect(() => {
     async function loadInvitations() {
@@ -54,7 +51,6 @@ export default function GuestsPage() {
         toast.error("Gagal memuat undangan");
       }
     }
-
     loadInvitations();
   }, []);
 
@@ -72,7 +68,6 @@ export default function GuestsPage() {
         setIsLoading(false);
       }
     }
-
     loadGuests();
   }, [selectedInvitationId]);
 
@@ -85,7 +80,6 @@ export default function GuestsPage() {
     const formData = new FormData();
     formData.append("invitationId", selectedInvitationId);
     formData.append("file", file);
-
     try {
       const { data } = await axios.post<{ imported: number; skipped?: number }>("/api/guests/import", formData);
       toast.success(`${data.imported} tamu berhasil diimport${data.skipped ? `, ${data.skipped} dilewati` : ""}`);
@@ -105,20 +99,12 @@ export default function GuestsPage() {
     window.open(`/api/guests?invitationId=${selectedInvitationId}&export=csv`, "_blank");
   };
 
-  const createGuest = async () => {
+  const createGuest = async (values: GuestValues) => {
     if (!selectedInvitationId) return;
-    if (!newGuest.name.trim()) {
-      toast.error("Nama tamu wajib diisi");
-      return;
-    }
-
     try {
-      const { data } = await axios.post<GuestRow>("/api/guests", {
-        invitationId: selectedInvitationId,
-        ...newGuest,
-      });
+      const { data } = await axios.post<GuestRow>("/api/guests", { invitationId: selectedInvitationId, ...values });
       setGuests((current) => [data, ...current]);
-      setNewGuest({ name: "", phone: "", email: "", group: "" });
+      reset(defaultGuestValues);
       toast.success("Tamu berhasil ditambahkan");
     } catch (error) {
       if (axios.isAxiosError(error) && typeof error.response?.data?.error === "string") {
@@ -131,11 +117,7 @@ export default function GuestsPage() {
 
   const sendWhatsApp = async () => {
     try {
-      const { data } = await axios.post<{ results: WhatsAppSendResult[]; links: Array<{ url: string }> }>("/api/guests/whatsapp", {
-        guestIds: selectedGuestIds,
-        message,
-      });
-
+      const { data } = await axios.post<{ results: WhatsAppSendResult[]; links: Array<{ url: string }> }>("/api/guests/whatsapp", { guestIds: selectedGuestIds, message });
       setLastResults(data.results);
       data.links.slice(0, 10).forEach((link) => window.open(link.url, "_blank"));
       const sent = data.results.filter((item) => item.status === "sent").length;
@@ -189,12 +171,20 @@ export default function GuestsPage() {
               <CardTitle className="flex items-center gap-2 text-slate-900"><Plus className="size-5" /> Tambah Tamu Manual</CardTitle>
               <CardDescription>Tambah tamu satu per satu tanpa harus import file.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-              <input value={newGuest.name} onChange={(event) => setNewGuest((current) => ({ ...current, name: event.target.value }))} className="input-premium" placeholder="Nama tamu" />
-              <input value={newGuest.phone} onChange={(event) => setNewGuest((current) => ({ ...current, phone: event.target.value }))} className="input-premium" placeholder="WhatsApp / Telepon" />
-              <input value={newGuest.email} onChange={(event) => setNewGuest((current) => ({ ...current, email: event.target.value }))} className="input-premium" placeholder="Email opsional" />
-              <input value={newGuest.group} onChange={(event) => setNewGuest((current) => ({ ...current, group: event.target.value }))} className="input-premium" placeholder="Group, mis. keluarga" />
-              <Button type="button" onClick={createGuest} className="bg-[#0f172a] text-white hover:bg-slate-800"><Plus className="size-4" /> Simpan</Button>
+            <CardContent>
+              <form onSubmit={handleSubmit(createGuest)} className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+                <div>
+                  <input {...register("name")} className="input-premium" placeholder="Nama tamu" />
+                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+                </div>
+                <input {...register("phone")} className="input-premium" placeholder="WhatsApp / Telepon" />
+                <div>
+                  <input {...register("email")} className="input-premium" placeholder="Email opsional" />
+                  {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+                </div>
+                <input {...register("group")} className="input-premium" placeholder="Group, mis. keluarga" />
+                <Button type="submit" className="bg-[#0f172a] text-white hover:bg-slate-800"><Plus className="size-4" /> Simpan</Button>
+              </form>
             </CardContent>
           </Card>
 
@@ -208,7 +198,6 @@ export default function GuestsPage() {
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                 <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama, nomor, atau email tamu..." className="input-premium pl-10" />
               </div>
-
               {isLoading ? (
                 <div className="py-10 text-center text-slate-500">Memuat tamu...</div>
               ) : (

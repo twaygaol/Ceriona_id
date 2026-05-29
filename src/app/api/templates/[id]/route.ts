@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { templateCategories } from "@/types/template";
 
 const templateSections = [
   "opening", "hero", "quote", "countdown", "story", 
@@ -17,7 +18,7 @@ const updateTemplateSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   description: z.string().optional().or(z.literal("")),
-  category: z.enum(["wedding", "birthday", "graduation", "custom"]).optional(),
+  category: z.enum(templateCategories).optional(),
   thumbnail: z.string().url().optional().or(z.literal("")),
   previewImage: z.string().url().optional().or(z.literal("")),
   layout: z

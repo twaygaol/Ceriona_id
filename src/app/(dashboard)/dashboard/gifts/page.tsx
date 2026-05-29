@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Gift, Plus, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -23,28 +26,30 @@ interface VirtualGiftItem {
   qrImageUrl?: string | null;
 }
 
-type GiftForm = Pick<VirtualGiftItem, "type"> & {
-  provider: string;
-  accountNumber: string;
-  accountName: string;
-  qrImageUrl: string;
-};
+const giftSchema = z.object({
+  type: z.enum(["bank", "ewallet", "payment_gateway"]),
+  provider: z.string().min(1, "Provider wajib diisi"),
+  accountNumber: z.string().optional(),
+  accountName: z.string().optional(),
+  qrImageUrl: z.string().optional(),
+});
 
-const defaultForm: GiftForm = {
-  type: "bank" as const,
-  provider: "",
-  accountNumber: "",
-  accountName: "",
-  qrImageUrl: "",
-};
+type GiftValues = z.input<typeof giftSchema>;
+const defaultValues: GiftValues = { type: "bank", provider: "", accountNumber: "", accountName: "", qrImageUrl: "" };
 
 export default function GiftsPage() {
   const [invitations, setInvitations] = useState<InvitationOption[]>([]);
   const [selectedInvitationId, setSelectedInvitationId] = useState("");
   const [gifts, setGifts] = useState<VirtualGiftItem[]>([]);
-  const [form, setForm] = useState(defaultForm);
   const [isSaving, setIsSaving] = useState(false);
   const [featureLocked, setFeatureLocked] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<GiftValues>({ resolver: zodResolver(giftSchema), defaultValues });
 
   useEffect(() => {
     async function loadInvitations() {
@@ -56,7 +61,6 @@ export default function GiftsPage() {
         toast.error("Gagal memuat undangan");
       }
     }
-
     loadInvitations();
   }, []);
 
@@ -71,17 +75,16 @@ export default function GiftsPage() {
         setFeatureLocked(true);
       }
     }
-
     loadGifts();
   }, [selectedInvitationId]);
 
-  const saveGift = async () => {
+  const onSubmit = async (values: GiftValues) => {
     if (!selectedInvitationId) return;
     setIsSaving(true);
     try {
-      await axios.post(`/api/gifts/${selectedInvitationId}`, form);
+      await axios.post(`/api/gifts/${selectedInvitationId}`, values);
       toast.success("Wedding gift berhasil ditambahkan");
-      setForm(defaultForm);
+      reset(defaultValues);
       const { data } = await axios.get<VirtualGiftItem[]>(`/api/gifts/${selectedInvitationId}`);
       setGifts(data);
     } catch {
@@ -131,22 +134,37 @@ export default function GiftsPage() {
             <CardDescription>Untuk payment gateway, isi provider misalnya Midtrans/Xendit dan gunakan QR/link dari provider.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-brown">Tipe</span>
-              <select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as VirtualGiftItem["type"] }))} className="input-premium">
-                <option value="bank">Bank Transfer</option>
-                <option value="ewallet">E-Wallet</option>
-                <option value="payment_gateway">Payment Gateway</option>
-              </select>
-            </label>
-            <Input label="Provider" value={form.provider} placeholder="BCA / Mandiri / DANA / Midtrans" onChange={(provider) => setForm((current) => ({ ...current, provider }))} />
-            <Input label="Nomor Akun" value={form.accountNumber} placeholder="Nomor rekening / wallet" onChange={(accountNumber) => setForm((current) => ({ ...current, accountNumber }))} />
-            <Input label="Nama Pemilik" value={form.accountName} placeholder="a.n. Nama Pemilik" onChange={(accountName) => setForm((current) => ({ ...current, accountName }))} />
-            <Input label="QR Image URL" value={form.qrImageUrl} placeholder="https://..." onChange={(qrImageUrl) => setForm((current) => ({ ...current, qrImageUrl }))} />
-            <Button type="button" disabled={isSaving || featureLocked} onClick={saveGift} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
-              <Gift className="size-4" />
-              {isSaving ? "Menyimpan..." : "Simpan Gift"}
-            </Button>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Tipe</span>
+                <select {...register("type")} className="input-premium">
+                  <option value="bank">Bank Transfer</option>
+                  <option value="ewallet">E-Wallet</option>
+                  <option value="payment_gateway">Payment Gateway</option>
+                </select>
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Provider</span>
+                <input {...register("provider")} className="input-premium" placeholder="BCA / Mandiri / DANA / Midtrans" />
+                {errors.provider && <p className="text-xs text-red-500">{errors.provider.message}</p>}
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Nomor Akun</span>
+                <input {...register("accountNumber")} className="input-premium" placeholder="Nomor rekening / wallet" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">Nama Pemilik</span>
+                <input {...register("accountName")} className="input-premium" placeholder="a.n. Nama Pemilik" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-brown">QR Image URL</span>
+                <input {...register("qrImageUrl")} className="input-premium" placeholder="https://..." />
+                {errors.qrImageUrl && <p className="text-xs text-red-500">{errors.qrImageUrl.message}</p>}
+              </label>
+              <Button type="submit" disabled={isSaving || featureLocked} className="w-full bg-brown text-gold-light hover:bg-gold hover:text-brown">
+                <Gift className="size-4" /> {isSaving ? "Menyimpan..." : "Simpan Gift"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
@@ -182,14 +200,5 @@ export default function GiftsPage() {
         </Card>
       </div>
     </div>
-  );
-}
-
-function Input({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void }) {
-  return (
-    <label className="block space-y-2">
-      <span className="text-sm font-medium text-brown">{label}</span>
-      <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="input-premium" />
-    </label>
   );
 }

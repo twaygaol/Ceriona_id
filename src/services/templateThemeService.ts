@@ -1,4 +1,4 @@
-import type { TemplateSection } from "@/types/template";
+import type { TemplateCategory, TemplateSection } from "@/types/template";
 
 export interface TemplateThemePreset {
   key: string;
@@ -17,7 +17,7 @@ export interface TemplateThemePreset {
     buttonStyle: "solid" | "outline" | "rounded";
     borderRadius: "0px" | "4px" | "8px" | "16px" | "24px";
     isPremium: boolean;
-    category: "wedding" | "birthday" | "graduation" | "custom";
+    category: TemplateCategory;
   };
   sections: TemplateSection[];
   opening: {
@@ -53,7 +53,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "luxury",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
@@ -80,7 +80,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "elegant",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "footer"],
     opening: {
@@ -107,7 +107,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "outline",
       borderRadius: "16px",
       isPremium: false,
-      category: "wedding",
+      category: "minimalist",
     },
     sections: ["opening", "hero", "quote", "countdown", "gallery", "event", "rsvp", "footer"],
     opening: {
@@ -215,7 +215,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "adat-jawa",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
@@ -295,7 +295,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "adat-jawa",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
@@ -344,85 +344,109 @@ export const templateThemePresets: TemplateThemePreset[] = [
   {
     key: "adat-batak-ulos",
     label: "Adat Batak Ulos",
-    description: "Tema adat Batak dengan merah, hitam, putih, dan aksen ulos yang tegas.",
-    preview: "linear-gradient(145deg,#130707,#8B1E1E 46%,#111111 72%,#F5EFE3)",
+    description: "Tema adat Batak premium dengan maroon, gold, hitam, dan motif ulos gorga yang mewah.",
+    preview: "radial-gradient(circle at 50% 18%,rgba(201,168,76,0.28),transparent 34%),linear-gradient(145deg,#1A0A0B,#5C1A1B 46%,#0D0606 72%,#F7EBDD)",
     values: {
-      primaryColor: "#151010",
-      secondaryColor: "#000000",
+      primaryColor: "#5C1A1B",
+      secondaryColor: "#C9A84C",
       backgroundColor: "#F7EFE4",
-      textColor: "#211715",
-      gradientFrom: "#000000",
-      gradientTo: "#111111",
-      headingFont: "Playfair Display",
-      bodyFont: "Poppins",
+      textColor: "#1A0A0B",
+      gradientFrom: "#5C1A1B",
+      gradientTo: "#0D0606",
+      headingFont: "Cormorant Garamond",
+      bodyFont: "DM Sans",
       buttonStyle: "rounded",
-      borderRadius: "16px",
+      borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "adat-batak",
     },
-    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
+    sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
-      eyebrow: "Horas Invitation",
+      eyebrow: "Horas — Undangan Pernikahan",
       buttonLabel: "Buka Undangan",
       ornament: "royal",
       backgroundImage: "/ornament/ornament-jawa-opening.jpg",
     },
     ornaments: {
       headerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 80" preserveAspectRatio="none">
-        <rect width="800" height="80" fill="#151010"/>
-        <line x1="0" y1="8" x2="800" y2="8" stroke="#B91C1C" stroke-width="1.5"/>
-        <line x1="0" y1="72" x2="800" y2="72" stroke="#B91C1C" stroke-width="1.5"/>
-        <g fill="#B91C1C" opacity="0.85">
+        <rect width="800" height="80" fill="#1A0A0B"/>
+        <line x1="0" y1="6" x2="800" y2="6" stroke="#C9A84C" stroke-width="1.2"/>
+        <line x1="0" y1="74" x2="800" y2="74" stroke="#C9A84C" stroke-width="1.2"/>
+        <g fill="#C9A84C" opacity="0.35">
           ${Array.from({length: 50}, (_, i) => {
             const x = i * 16;
-            return `<polygon points="${x},16 ${x+8},16 ${x+8},32 ${x},32" opacity="${i%2===0?'1':'0.4'}"/>
-                    <polygon points="${x},48 ${x+8},48 ${x+8},64 ${x},64" opacity="${i%2===0?'0.4':'1'}"/>`;
-          }).join('')}
-        </g>
-        <g fill="none" stroke="#C9A84C" stroke-width="0.8" opacity="0.6">
-          ${Array.from({length: 26}, (_, i) => {
-            const x = i * 32 + 8;
-            return `<rect x="${x-5}" y="37" width="10" height="10" transform="rotate(45,${x},42)"/>`;
-          }).join('')}
-        </g>
-      </svg>`,
-
-      dividerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 32" preserveAspectRatio="none">
-        <g fill="#B91C1C">
-          ${Array.from({length: 100}, (_, i) => {
-            const x = i * 8;
-            return `<polygon points="${x},0 ${x+4},0 ${x+4},16 ${x},16" opacity="${i%2===0?'0.9':'0.3'}"/>
-                    <polygon points="${x},16 ${x+4},16 ${x+4},32 ${x},32" opacity="${i%2===0?'0.3':'0.9'}"/>`;
-          }).join('')}
-        </g>
-        <line x1="0" y1="16" x2="800" y2="16" stroke="#C9A84C" stroke-width="0.5" opacity="0.5"/>
-      </svg>`,
-
-      footerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 60" preserveAspectRatio="none">
-        <rect width="800" height="60" fill="#151010"/>
-        <line x1="0" y1="6" x2="800" y2="6" stroke="#B91C1C" stroke-width="1.5"/>
-        <g fill="#B91C1C" opacity="0.7">
-          ${Array.from({length: 50}, (_, i) => {
-            const x = i * 16;
-            return `<polygon points="${x+8},10 ${x+16},28 ${x},28"/>`;
+            return `<polygon points="${x+2},14 ${x+14},14 ${x+8},22" opacity="${i%3===0?'0.7':'0.35'}"/>`;
           }).join('')}
         </g>
         <g fill="none" stroke="#C9A84C" stroke-width="0.6" opacity="0.5">
-          ${Array.from({length: 26}, (_, i) => {
-            const x = i * 32 + 8;
-            return `<rect x="${x-4}" y="38" width="8" height="8" transform="rotate(45,${x},42)"/>`;
+          ${Array.from({length: 20}, (_, i) => {
+            const cx = i * 40 + 20;
+            return `<path d="M${cx-8},38 L${cx},30 L${cx+8},38 L${cx},46 Z"/>`;
           }).join('')}
         </g>
-        <line x1="0" y1="54" x2="800" y2="54" stroke="#B91C1C" stroke-width="1.5"/>
+        <g fill="#5C1A1B" opacity="0.6">
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<circle cx="${x+8}" cy="52" r="3"/>`;
+          }).join('')}
+        </g>
+      </svg>`,
+
+      dividerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 40" preserveAspectRatio="none">
+        <rect width="800" height="40" fill="transparent"/>
+        <g fill="#C9A84C" opacity="0.4">
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<polygon points="${x+4},4 ${x+12},4 ${x+8},18" opacity="${i%2===0?'0.6':'0.25'}"/>`;
+          }).join('')}
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<polygon points="${x+4},36 ${x+12},36 ${x+8},22" opacity="${i%2===0?'0.25':'0.6'}"/>`;
+          }).join('')}
+        </g>
+        <g fill="#5C1A1B" opacity="0.5">
+          ${Array.from({length: 25}, (_, i) => {
+            const x = i * 32 + 8;
+            return `<rect x="${x-3}" y="14" width="6" height="12" transform="rotate(45,${x},20)"/>`;
+          }).join('')}
+        </g>
+        <line x1="0" y1="20" x2="800" y2="20" stroke="#C9A84C" stroke-width="0.4" opacity="0.3"/>
+      </svg>`,
+
+      footerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+        <rect width="800" height="60" fill="#1A0A0B"/>
+        <line x1="0" y1="4" x2="800" y2="4" stroke="#C9A84C" stroke-width="1.2"/>
+        <g fill="#C9A84C" opacity="0.25">
+          ${Array.from({length: 50}, (_, i) => {
+            const x = i * 16;
+            return `<polygon points="${x+4},10 ${x+12},10 ${x+8},26"/>`;
+          }).join('')}
+        </g>
+        <g fill="none" stroke="#C9A84C" stroke-width="0.6" opacity="0.6">
+          ${Array.from({length: 20}, (_, i) => {
+            const cx = i * 40 + 20;
+            return `<path d="M${cx-8},38 L${cx},30 L${cx+8},38 L${cx},46 Z"/>`;
+          }).join('')}
+        </g>
+        <g fill="#5C1A1B" opacity="0.55">
+          ${Array.from({length: 26}, (_, i) => {
+            const x = i * 32 + 8;
+            return `<circle cx="${x}" cy="48" r="2.5"/>`;
+          }).join('')}
+        </g>
+        <line x1="0" y1="56" x2="800" y2="56" stroke="#C9A84C" stroke-width="1.2"/>
       </svg>`,
 
       cornerSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
-        <path d="M0,0 L60,0 L0,60 Z" fill="#B91C1C" opacity="0.12"/>
-        <path d="M0,0 L40,0 L0,40 Z" fill="#B91C1C" opacity="0.18"/>
-        <path d="M0,0 L20,0 L0,20 Z" fill="#B91C1C" opacity="0.3"/>
-        <line x1="0" y1="0" x2="60" y2="0" stroke="#C9A84C" stroke-width="1" opacity="0.6"/>
-        <line x1="0" y1="0" x2="0" y2="60" stroke="#C9A84C" stroke-width="1" opacity="0.6"/>
-        <rect x="2" y="2" width="8" height="8" transform="rotate(45,6,6)" fill="#C9A84C" opacity="0.5"/>
+        <path d="M0,0 L60,0 L0,60 Z" fill="#5C1A1B" opacity="0.15"/>
+        <path d="M0,0 L40,0 L0,40 Z" fill="#5C1A1B" opacity="0.22"/>
+        <path d="M0,0 L24,0 L0,24 Z" fill="#C9A84C" opacity="0.15"/>
+        <line x1="0" y1="0" x2="60" y2="0" stroke="#C9A84C" stroke-width="1.2" opacity="0.6"/>
+        <line x1="0" y1="0" x2="0" y2="60" stroke="#C9A84C" stroke-width="1.2" opacity="0.6"/>
+        <path d="M6,6 L24,6 L6,24 Z" fill="none" stroke="#C9A84C" stroke-width="0.6" opacity="0.4"/>
+        <circle cx="14" cy="14" r="4" fill="#C9A84C" opacity="0.5"/>
+        <circle cx="14" cy="14" r="2" fill="#5C1A1B" opacity="0.6"/>
+        <rect x="2" y="2" width="6" height="6" transform="rotate(45,5,5)" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.35"/>
       </svg>`,
 
       patternClass: "batak-ulos-pattern",
@@ -445,7 +469,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "luxury",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "live-streaming", "footer"],
     opening: {
@@ -472,7 +496,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "elegant",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
     opening: {
@@ -499,7 +523,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "modern",
     },
     sections: ["opening", "hero", "countdown", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
     opening: {
@@ -526,7 +550,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "outline",
       borderRadius: "16px",
       isPremium: false,
-      category: "wedding",
+      category: "minimalist",
     },
     sections: ["opening", "hero", "quote", "gallery", "event", "rsvp", "footer"],
     opening: {
@@ -605,7 +629,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "islami",
     },
     sections: ["opening", "hero", "quote", "countdown", "gallery", "event", "rsvp", "wishes", "gift", "footer"],
     opening: {
@@ -631,7 +655,7 @@ export const templateThemePresets: TemplateThemePreset[] = [
       buttonStyle: "rounded",
       borderRadius: "24px",
       isPremium: true,
-      category: "wedding",
+      category: "modern",
     },
     sections: ["opening", "hero", "quote", "countdown", "story", "gallery", "event", "rsvp", "wishes", "footer"],
     opening: {

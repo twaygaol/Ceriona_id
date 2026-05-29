@@ -148,19 +148,26 @@ export function SundaMelati({ className = "" }: { className?: string }) {
 
 export function BatakDivider() {
   return (
-    <div className="my-0 h-8 w-full overflow-hidden" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 32" preserveAspectRatio="none" className="h-full w-full">
-        <g fill="#B91C1C">
-          {Array.from({ length: 100 }, (_, i) => {
-            const x = i * 8;
-            return (<polygon key={i} points={`${x},0 ${x + 4},0 ${x + 4},16 ${x},16`} opacity={i % 2 === 0 ? "0.9" : "0.3"} />);
+    <div className="my-0 h-10 w-full overflow-hidden" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 40" preserveAspectRatio="none" className="h-full w-full">
+        <rect width="800" height="40" fill="transparent" />
+        <g fill="#C9A84C" opacity="0.35">
+          {Array.from({ length: 50 }, (_, i) => {
+            const x = i * 16;
+            return (<polygon key={i} points={`${x + 4},4 ${x + 12},4 ${x + 8},18`} opacity={i % 2 === 0 ? "0.6" : "0.25"} />);
           })}
-          {Array.from({ length: 100 }, (_, i) => {
-            const x = i * 8;
-            return (<polygon key={`b${i}`} points={`${x},16 ${x + 4},16 ${x + 4},32 ${x},32`} opacity={i % 2 === 0 ? "0.3" : "0.9"} />);
+          {Array.from({ length: 50 }, (_, i) => {
+            const x = i * 16;
+            return (<polygon key={`d${i}`} points={`${x + 4},36 ${x + 12},36 ${x + 8},22`} opacity={i % 2 === 0 ? "0.25" : "0.6"} />);
           })}
         </g>
-        <line x1="0" y1="16" x2="800" y2="16" stroke="#C9A84C" strokeWidth="0.5" opacity="0.5" />
+        <g fill="#5C1A1B" opacity="0.45">
+          {Array.from({ length: 25 }, (_, i) => {
+            const x = i * 32 + 8;
+            return (<rect key={i} x={x - 3} y="14" width="6" height="12" transform={`rotate(45,${x},20)`} />);
+          })}
+        </g>
+        <line x1="0" y1="20" x2="800" y2="20" stroke="#C9A84C" strokeWidth="0.4" opacity="0.3" />
       </svg>
     </div>
   );
@@ -170,24 +177,25 @@ export function BatakHeader() {
   return (
     <div className="h-20 w-full overflow-hidden" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 80" preserveAspectRatio="none" className="h-full w-full">
-        <rect width="800" height="80" fill="#151010" />
-        <line x1="0" y1="8" x2="800" y2="8" stroke="#B91C1C" strokeWidth="1.5" />
-        <line x1="0" y1="72" x2="800" y2="72" stroke="#B91C1C" strokeWidth="1.5" />
-        <g fill="#B91C1C" opacity="0.85">
+        <rect width="800" height="80" fill="#1A0A0B" />
+        <line x1="0" y1="6" x2="800" y2="6" stroke="#C9A84C" strokeWidth="1.2" />
+        <line x1="0" y1="74" x2="800" y2="74" stroke="#C9A84C" strokeWidth="1.2" />
+        <g fill="#C9A84C" opacity="0.3">
           {Array.from({ length: 50 }, (_, i) => {
             const x = i * 16;
-            return (
-              <g key={i}>
-                <polygon points={`${x},16 ${x + 8},16 ${x + 8},32 ${x},32`} opacity={i % 2 === 0 ? "1" : "0.4"} />
-                <polygon points={`${x},48 ${x + 8},48 ${x + 8},64 ${x},64`} opacity={i % 2 === 0 ? "0.4" : "1"} />
-              </g>
-            );
+            return (<polygon key={i} points={`${x + 2},14 ${x + 14},14 ${x + 8},22`} opacity={i % 3 === 0 ? "0.7" : "0.35"} />);
           })}
         </g>
-        <g fill="none" stroke="#C9A84C" strokeWidth="0.8" opacity="0.6">
-          {Array.from({ length: 26 }, (_, i) => {
-            const x = i * 32 + 8;
-            return <rect key={i} x={x - 5} y="37" width="10" height="10" transform={`rotate(45,${x},42)`} />;
+        <g fill="none" stroke="#C9A84C" strokeWidth="0.6" opacity="0.5">
+          {Array.from({ length: 20 }, (_, i) => {
+            const cx = i * 40 + 20;
+            return (<path key={i} d={`M${cx - 8},38 L${cx},30 L${cx + 8},38 L${cx},46 Z`} />);
+          })}
+        </g>
+        <g fill="#5C1A1B" opacity="0.55">
+          {Array.from({ length: 50 }, (_, i) => {
+            const x = i * 16;
+            return (<circle key={i} cx={x + 8} cy={52} r="3" />);
           })}
         </g>
       </svg>
@@ -199,21 +207,27 @@ export function BatakFooterBar() {
   return (
     <div className="h-16 w-full overflow-hidden" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 60" preserveAspectRatio="none" className="h-full w-full">
-        <rect width="800" height="60" fill="#151010" />
-        <line x1="0" y1="6" x2="800" y2="6" stroke="#B91C1C" strokeWidth="1.5" />
-        <g fill="#B91C1C" opacity="0.7">
+        <rect width="800" height="60" fill="#1A0A0B" />
+        <line x1="0" y1="4" x2="800" y2="4" stroke="#C9A84C" strokeWidth="1.2" />
+        <g fill="#C9A84C" opacity="0.22">
           {Array.from({ length: 50 }, (_, i) => {
             const x = i * 16;
-            return <polygon key={i} points={`${x + 8},10 ${x + 16},28 ${x},28`} />;
+            return (<polygon key={i} points={`${x + 4},10 ${x + 12},10 ${x + 8},26`} />);
           })}
         </g>
-        <g fill="none" stroke="#C9A84C" strokeWidth="0.6" opacity="0.5">
+        <g fill="none" stroke="#C9A84C" strokeWidth="0.6" opacity="0.55">
+          {Array.from({ length: 20 }, (_, i) => {
+            const cx = i * 40 + 20;
+            return (<path key={i} d={`M${cx - 8},38 L${cx},30 L${cx + 8},38 L${cx},46 Z`} />);
+          })}
+        </g>
+        <g fill="#5C1A1B" opacity="0.5">
           {Array.from({ length: 26 }, (_, i) => {
             const x = i * 32 + 8;
-            return <rect key={i} x={x - 4} y="38" width="8" height="8" transform={`rotate(45,${x},42)`} />;
+            return (<circle key={i} cx={x} cy={48} r="2.5" />);
           })}
         </g>
-        <line x1="0" y1="54" x2="800" y2="54" stroke="#B91C1C" strokeWidth="1.5" />
+        <line x1="0" y1="56" x2="800" y2="56" stroke="#C9A84C" strokeWidth="1.2" />
       </svg>
     </div>
   );
@@ -221,16 +235,36 @@ export function BatakFooterBar() {
 
 export function BatakCorner({ className = "" }: { className?: string }) {
   return (
-    <div className={`pointer-events-none absolute h-20 w-20 ${className}`} aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" className="h-full w-full">
-        <path d="M0,0 L60,0 L0,60 Z" fill="#B91C1C" opacity="0.12" />
-        <path d="M0,0 L40,0 L0,40 Z" fill="#B91C1C" opacity="0.18" />
-        <path d="M0,0 L20,0 L0,20 Z" fill="#B91C1C" opacity="0.3" />
-        <line x1="0" y1="0" x2="60" y2="0" stroke="#C9A84C" strokeWidth="1" opacity="0.6" />
-        <line x1="0" y1="0" x2="0" y2="60" stroke="#C9A84C" strokeWidth="1" opacity="0.6" />
-        <rect x="2" y="2" width="8" height="8" transform="rotate(45,6,6)" fill="#C9A84C" opacity="0.5" />
+    <div className={`pointer-events-none absolute h-24 w-24 ${className}`} aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className="h-full w-full">
+        <path d="M0,0 L72,0 L0,72 Z" fill="#5C1A1B" opacity="0.12" />
+        <path d="M0,0 L48,0 L0,48 Z" fill="#5C1A1B" opacity="0.18" />
+        <path d="M0,0 L28,0 L0,28 Z" fill="#C9A84C" opacity="0.12" />
+        <line x1="0" y1="0" x2="72" y2="0" stroke="#C9A84C" strokeWidth="1.2" opacity="0.6" />
+        <line x1="0" y1="0" x2="0" y2="72" stroke="#C9A84C" strokeWidth="1.2" opacity="0.6" />
+        <path d="M8,8 L28,8 L8,28 Z" fill="none" stroke="#C9A84C" strokeWidth="0.6" opacity="0.35" />
+        <circle cx="18" cy="18" r="5" fill="#C9A84C" opacity="0.5" />
+        <circle cx="18" cy="18" r="2.5" fill="#5C1A1B" opacity="0.6" />
+        <circle cx="34" cy="8" r="2" fill="#C9A84C" opacity="0.25" />
+        <circle cx="8" cy="34" r="2" fill="#C9A84C" opacity="0.25" />
+        <rect x="3" y="3" width="8" height="8" transform="rotate(45,7,7)" fill="none" stroke="#C9A84C" strokeWidth="0.5" opacity="0.3" />
       </svg>
     </div>
+  );
+}
+
+export function BatakGorgaFlower({ className = "" }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={`size-10 ${className}`}>
+      <circle cx="20" cy="20" r="4" fill="#C9A84C" opacity="0.7" />
+      <path d="M20,4 L24,16 L36,20 L24,24 L20,36 L16,24 L4,20 L16,16 Z" fill="none" stroke="#C9A84C" strokeWidth="0.8" opacity="0.45" />
+      <path d="M20,8 L22,16 L30,20 L22,24 L20,32 L18,24 L10,20 L18,16 Z" fill="none" stroke="#5C1A1B" strokeWidth="0.6" opacity="0.4" />
+      <circle cx="20" cy="20" r="2" fill="#F7EBDD" opacity="0.5" />
+      <circle cx="14" cy="14" r="1.5" fill="#C9A84C" opacity="0.3" />
+      <circle cx="26" cy="14" r="1.5" fill="#C9A84C" opacity="0.3" />
+      <circle cx="14" cy="26" r="1.5" fill="#C9A84C" opacity="0.3" />
+      <circle cx="26" cy="26" r="1.5" fill="#C9A84C" opacity="0.3" />
+    </svg>
   );
 }
 
@@ -468,6 +502,7 @@ export function DynamicFlower({ className = "", template }: { className?: string
     case "sunda-priangan": return <SundaMelati className={className} />;
     case "adat-jawa-royal": return <JawaFlowerOrnament className={className} />;
     case "adat-jawa-classic-luxury": return <JawaClassicFlower className={className} />;
+    case "adat-batak-ulos": return <BatakGorgaFlower className={className} />;
     default: return null;
   }
 }

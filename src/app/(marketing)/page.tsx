@@ -5,6 +5,11 @@ import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, Eye, Gift, ImageIcon, MapPin, MessageCircle, Music, Sparkles } from "lucide-react";
+import { Stats } from "@/components/sections/Stats";
+import { Pricing } from "@/components/sections/Pricing";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { FAQ } from "@/components/sections/FAQ";
+import { CTA } from "@/components/sections/CTA";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { templateThemePresets } from "@/services/templateThemeService";
@@ -202,6 +207,12 @@ export default function HomePage() {
         </div>
       </section>
 
+      <Stats />
+      <Pricing />
+      <Testimonials />
+      <FAQ />
+      <CTA />
+
       {/* Preview Dialog */}
       <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => !open && setPreviewThemeKey(null)}>
         <DialogContent className="max-w-5xl bg-[#120f0d] p-0 text-white">
@@ -259,15 +270,10 @@ export default function HomePage() {
             <DialogDescription>Pilih tema, isi nama pasangan, lalu lanjutkan ke paket dan checkout.</DialogDescription>
           </DialogHeader>
 
-          {/* Two-column grid — explicit pixel width so it never collapses */}
+          {/* Two-column grid — responsive: horizontal on md+, stacked on mobile */}
           <div
-            style={{
-              display: "grid",
-                gridTemplateColumns: "480px 1fr",
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-            }}
+            className="flex-1 min-h-0 overflow-hidden grid-cols-1 md:grid-cols-[480px_1fr]"
+            style={{ display: "grid" }}
           >
 
             {/* ── LEFT PANEL ── */}
@@ -544,10 +550,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* ── RIGHT PANEL — Live Preview ── */}
+            {/* ── RIGHT PANEL — Live Preview (hidden on mobile) ── */}
             <div
+              className="hidden md:flex"
               style={{
-                display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
                 background: "linear-gradient(160deg,#f7f1e8,#efe3d3)",

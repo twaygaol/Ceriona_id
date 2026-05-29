@@ -101,15 +101,15 @@ export default function DashboardLayout({
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Sidebar */}
+      {/* Sidebar — flex column: header (fixed), nav (scrollable), footer (fixed) */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-full w-72 border-r transition-transform duration-300",
+          "fixed top-0 left-0 z-40 flex h-full w-72 flex-col border-r transition-transform duration-300",
           darkMode ? "border-white/10 bg-[#0b1220]" : "border-[#0f172a]/8 bg-white",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="p-6">
+        <div className="flex-shrink-0 p-6">
           <Link href="/" className={cn("font-serif text-3xl font-semibold tracking-wide", darkMode ? "text-white" : "text-[#0f172a]") }>
             Cerio<span className="text-[#D9B86C]">na</span>
           </Link>
@@ -127,7 +127,7 @@ export default function DashboardLayout({
           </div>
         </div>
         
-        <nav className="mt-2 space-y-1 px-4 pb-40">
+        <nav className="flex-1 overflow-y-auto px-4 pb-2">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -152,7 +152,7 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className={cn("absolute bottom-0 left-0 right-0 border-t p-4", darkMode ? "border-white/10 bg-[#0b1220]" : "border-[#0f172a]/8 bg-white") }>
+        <div className={cn("flex-shrink-0 border-t p-4", darkMode ? "border-white/10 bg-[#0b1220]" : "border-[#0f172a]/8 bg-white") }>
           <div className={cn("mb-3 flex items-center justify-between rounded-2xl border p-3", darkMode ? "border-white/10 bg-white/5" : "border-[#0f172a]/8 bg-[#f8fafc]") }>
             <div className="flex items-center gap-3">
               {darkMode ? <Moon className="size-4 text-[#D9B86C]" /> : <Sun className="size-4 text-[#D9B86C]" />}
@@ -172,9 +172,9 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="min-h-screen lg:ml-72">
-        <div className="border-b px-6 py-4 lg:px-8" style={{ borderColor: darkMode ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)" }}>
+      {/* Main Content — scrollable independently */}
+      <main className="flex h-screen flex-col lg:ml-72">
+        <div className="flex-shrink-0 border-b px-6 py-4 lg:px-8" style={{ borderColor: darkMode ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)" }}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className={cn("relative w-full max-w-xl", darkMode ? "text-white" : "text-[#0f172a]") }>
               <Search className={cn("absolute left-3 top-1/2 size-4 -translate-y-1/2", darkMode ? "text-white/40" : "text-[#94a3b8]") } />
@@ -186,7 +186,7 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
-        <div className="p-6 md:p-8">{children}</div>
+        <div className="flex-1 overflow-y-auto p-6 md:p-8">{children}</div>
       </main>
     </div>
   );

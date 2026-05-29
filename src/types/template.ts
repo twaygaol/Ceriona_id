@@ -1,5 +1,24 @@
 import type { InvitationData } from "@/app/invitation/[slug]/InvitationClient";
 
+export const templateCategories = [
+  "wedding",
+  "birthday",
+  "graduation",
+  "custom",
+  "adat-batak",
+  "adat-jawa",
+  "adat-sunda",
+  "modern",
+  "luxury",
+  "elegant",
+  "minimalist",
+  "islami",
+  "engagement",
+  "baby-shower",
+] as const;
+
+export type TemplateCategory = (typeof templateCategories)[number];
+
 export const templateSections = [
   "opening",
   "hero",

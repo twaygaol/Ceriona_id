@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { InvitationForm, type EditableInvitation } from "@/features/dashboard/invitations/invitation-form";
+import { VisualBuilder, type EditableInvitation } from "@/features/dashboard/invitations/VisualBuilder";
 
 export default function EditInvitationPage() {
   const params = useParams<{ id: string }>();
@@ -32,5 +32,9 @@ export default function EditInvitationPage() {
     return <div className="py-20 text-center text-brown-light">Memuat undangan...</div>;
   }
 
-  return invitation ? <InvitationForm mode="edit" initialInvitation={invitation} /> : null;
+  return invitation ? (
+    <div className="-m-6 md:-m-8" style={{ height: "calc(100vh - 4rem)" }}>
+      <VisualBuilder mode="edit" initialInvitation={invitation} />
+    </div>
+  ) : null;
 }
