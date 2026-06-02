@@ -16,8 +16,11 @@ import { GalleryVariant } from "./sections/GalleryVariant";
 import { GiftVariant } from "./sections/GiftVariant";
 import { RSVPVariant } from "./sections/RSVPVariant";
 import { FooterSection } from "./sections/FooterSection";
+import { MomentSection } from "./sections/MomentSection";
+import { VideoSection } from "./sections/VideoSection";
 import { MainLayout } from "./layouts/MainLayout";
 import { SectionWrapper } from "./layouts/SectionWrapper";
+import { DesktopShowcaseLayout } from "./layouts/DesktopShowcaseLayout";
 
 export { manifest };
 export { themeConfig };
@@ -36,8 +39,11 @@ export { GalleryVariant };
 export { GiftVariant };
 export { RSVPVariant };
 export { FooterSection };
+export { MomentSection };
+export { VideoSection };
 export { MainLayout };
 export { SectionWrapper };
+export { DesktopShowcaseLayout };
 
 export const themeId = "jawa" as const;
 
@@ -52,6 +58,7 @@ export const themePackage: ThemePackage = {
   EntranceAnimation,
   MainLayout,
   SectionWrapper,
+  DesktopShowcaseLayout,
   decorations: [BatikDecoration, GununganDecoration, FloralDecoration],
   sections: {
     CoverSection,
@@ -63,5 +70,7 @@ export const themePackage: ThemePackage = {
     GiftVariant,
     RSVPVariant,
     FooterSection,
+    MomentSection,
+    VideoSection,
   },
 };

@@ -9,8 +9,8 @@ import {
 export function ThemeProvider({ 
   children,
   attribute = "class",
-  defaultTheme = "system",
-  enableSystem = true,
+  defaultTheme = "light",
+  enableSystem = false,
   ...props
 }: ThemeProviderProps) {
   return (

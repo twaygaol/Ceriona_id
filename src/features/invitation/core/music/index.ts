@@ -8,15 +8,6 @@ export function useMusic(track?: string) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.5);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const interactedRef = useRef(false);
-
-  useEffect(() => {
-    const handler = () => {
-      interactedRef.current = true;
-    };
-    document.addEventListener("click", handler, { once: true });
-    return () => document.removeEventListener("click", handler);
-  }, []);
 
   useEffect(() => {
     if (!track) return;
@@ -50,19 +41,14 @@ export function useMusic(track?: string) {
       audio.pause();
       setPlaying(false);
     } else {
-      const playFn = () => {
-        audio.play().catch(() => {});
-        setPlaying(true);
-      };
-      if (interactedRef.current) {
-        playFn();
-      } else {
+      audio.play().catch(() => {
         const handler = () => {
-          interactedRef.current = true;
-          playFn();
+          audio.play().catch(() => {});
+          setPlaying(true);
         };
         document.addEventListener("click", handler, { once: true });
-      }
+      });
+      setPlaying(true);
     }
   }, [playing]);
 

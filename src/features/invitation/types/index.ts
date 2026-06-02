@@ -69,8 +69,17 @@ export interface ThemePackage {
   EntranceAnimation: React.ComponentType<EntranceProps>;
   MainLayout: React.ComponentType<MainLayoutProps>;
   SectionWrapper: React.ComponentType<SectionWrapperProps>;
+  DesktopShowcaseLayout?: React.ComponentType<DesktopShowcaseLayoutProps>;
   decorations: React.ComponentType<any>[];
+  SectionDivider?: React.ComponentType<any>;
   sections: ThemeSections;
+}
+
+export interface DesktopShowcaseLayoutProps {
+  config: ThemeConfig;
+  colors: ThemeColors;
+  fonts: ThemeFonts;
+  invitation?: any;
 }
 
 export interface ThemeSections {
@@ -83,6 +92,8 @@ export interface ThemeSections {
   GiftVariant: React.ComponentType<any>;
   RSVPVariant: React.ComponentType<any>;
   FooterSection: React.ComponentType<any>;
+  MomentSection?: React.ComponentType<any>;
+  VideoSection?: React.ComponentType<any>;
 }
 
 export interface ThemeConfig {
@@ -211,6 +222,32 @@ export interface RSVPVariantProps extends SectionBaseProps {
 export interface FooterSectionProps extends SectionBaseProps {
   brideName: string;
   groomName: string;
+}
+
+export interface MomentData {
+  id?: string;
+  title?: string;
+  description?: string;
+  photo?: string;
+  date?: string;
+  order?: number;
+}
+
+export interface VideoData {
+  id?: string;
+  type?: "youtube" | "upload";
+  url: string;
+  title?: string;
+  thumbnail?: string;
+  order?: number;
+}
+
+export interface MomentSectionProps extends SectionBaseProps {
+  moments: MomentData[];
+}
+
+export interface VideoSectionProps extends SectionBaseProps {
+  videos: VideoData[];
 }
 
 // ─── Theme Registry Types ─────────────────────────────────

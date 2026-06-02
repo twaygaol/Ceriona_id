@@ -4,93 +4,182 @@ import { motion } from "framer-motion";
 import type { OpeningScreenProps } from "../../../types";
 import { OpenInvitationButton } from "./OpenInvitationButton";
 
-const ulosDiamondPattern = {
+const ulosPattern = {
   backgroundImage: `
-    linear-gradient(45deg, rgba(212,168,75,0.08) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(212,168,75,0.08) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(212,168,75,0.08) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(212,168,75,0.08) 75%)
+    repeating-linear-gradient(
+      0deg,
+      rgba(200,164,77,0.03) 0px,
+      rgba(200,164,77,0.03) 2px,
+      transparent 2px,
+      transparent 12px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(122,0,25,0.02) 0px,
+      rgba(122,0,25,0.02) 2px,
+      transparent 2px,
+      transparent 12px
+    )
   `,
-  backgroundSize: "80px 80px",
-  backgroundPosition: "0 0, 0 40px, 40px -40px, -40px 0px",
 };
 
 export function OpeningScreen({ onOpen, config }: OpeningScreenProps) {
   return (
     <div
-      className="relative w-screen h-screen flex items-center justify-center overflow-hidden"
+      className="relative flex h-screen w-screen items-center justify-center overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, #1A0A0A, ${config.colors.secondary}, #0D0505)`,
+        background: `linear-gradient(135deg, ${config.colors.background} 0%, #FFF5E8 50%, ${config.colors.background} 100%)`,
         fontFamily: config.fonts.heading,
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
-      <div className="absolute inset-0" style={ulosDiamondPattern} />
+      <div className="absolute inset-0" style={ulosPattern} />
 
-      {/* Ulos-inspired geometric border pattern */}
-      <div className="absolute inset-6 pointer-events-none">
-        <div className="w-full h-full border" style={{ borderColor: `${config.colors.accent}22`, borderRadius: "4px" }} />
-        <div className="absolute top-2 left-2 right-2 bottom-2 border" style={{ borderColor: `${config.colors.accent}11` }} />
-      </div>
-
-      {/* Gorga-inspired corner ornaments */}
-      <svg className="absolute top-0 left-0 w-32 h-32 opacity-30" viewBox="0 0 100 100" fill="none">
-        <path d="M5 50 C5 20 25 5 50 5 C70 5 85 15 90 30" stroke={config.colors.accent} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <path d="M50 15 L70 50 L50 85 L30 50 Z" stroke={config.colors.accent} strokeWidth="1" fill="none" />
-        <line x1="50" y1="15" x2="50" y2="85" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-        <line x1="30" y1="50" x2="70" y2="50" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-      </svg>
-      <svg className="absolute top-0 right-0 w-32 h-32 opacity-30 scale-x-[-1]" viewBox="0 0 100 100" fill="none">
-        <path d="M5 50 C5 20 25 5 50 5 C70 5 85 15 90 30" stroke={config.colors.accent} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <path d="M50 15 L70 50 L50 85 L30 50 Z" stroke={config.colors.accent} strokeWidth="1" fill="none" />
-        <line x1="50" y1="15" x2="50" y2="85" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-        <line x1="30" y1="50" x2="70" y2="50" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-      </svg>
-      <svg className="absolute bottom-0 left-0 w-32 h-32 opacity-30 scale-y-[-1]" viewBox="0 0 100 100" fill="none">
-        <path d="M5 50 C5 20 25 5 50 5 C70 5 85 15 90 30" stroke={config.colors.accent} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <path d="M50 15 L70 50 L50 85 L30 50 Z" stroke={config.colors.accent} strokeWidth="1" fill="none" />
-        <line x1="50" y1="15" x2="50" y2="85" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-        <line x1="30" y1="50" x2="70" y2="50" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-      </svg>
-      <svg className="absolute bottom-0 right-0 w-32 h-32 opacity-30 scale-[-1]" viewBox="0 0 100 100" fill="none">
-        <path d="M5 50 C5 20 25 5 50 5 C70 5 85 15 90 30" stroke={config.colors.accent} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <path d="M50 15 L70 50 L50 85 L30 50 Z" stroke={config.colors.accent} strokeWidth="1" fill="none" />
-        <line x1="50" y1="15" x2="50" y2="85" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-        <line x1="30" y1="50" x2="70" y2="50" stroke={config.colors.accent} strokeWidth="0.6" opacity="0.5" />
-      </svg>
-
+      {/* Gorga Top */}
       <motion.div
-        className="relative z-10 flex flex-col items-center px-6 text-center"
-        initial={{ opacity: 0, y: 30 }}
+        className="absolute left-1/2 top-6 -translate-x-1/2"
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <p
-          className="text-sm tracking-[0.3em] uppercase mb-6"
-          style={{ color: config.colors.accent, fontFamily: config.fonts.body }}
-        >
-          Dongan Tu Ulaon
-        </p>
-
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-px" style={{ background: `linear-gradient(90deg, transparent, ${config.colors.accent})` }} />
-          <span className="text-xl" style={{ color: config.colors.accent }}>ᯎ</span>
-          <div className="w-16 h-px" style={{ background: `linear-gradient(90deg, ${config.colors.accent}, transparent)` }} />
-        </div>
-
-        <h1 className="text-5xl md:text-7xl font-bold tracking-wide mb-2"
-          style={{ color: config.colors.surface }}
-        >
-          Undangan
-        </h1>
-
-        <p className="text-base md:text-lg mt-6 mb-10 leading-relaxed max-w-md"
-          style={{ color: config.colors.muted, fontFamily: config.fonts.body }}
-        >
-          Marhahom ma rohami, ro do hami tu langkanami.
-        </p>
-
-        <OpenInvitationButton onClick={onOpen} config={config} />
+        <svg width="240" height="40" viewBox="0 0 240 40">
+          <path d="M120,8 Q100,20 120,32 Q140,20 120,8 Z" fill={config.colors.primary} opacity="0.9" />
+          <path d="M120,32 Q110,38 120,40 Q130,38 120,32 Z" fill={config.colors.secondary} opacity="0.8" />
+          <circle cx="120" cy="32" r="4" fill={config.colors.secondary} />
+          <path d="M30,24 Q70,28 120,24 Q170,28 210,24" stroke={config.colors.secondary} strokeWidth="1.5" fill="none" />
+          <circle cx="60" cy="25" r="3" fill={config.colors.secondary} opacity="0.6" />
+          <circle cx="180" cy="25" r="3" fill={config.colors.secondary} opacity="0.6" />
+        </svg>
       </motion.div>
+
+      {/* Gorga Bottom */}
+      <motion.div
+        className="absolute bottom-6 left-1/2 -translate-x-1/2"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        <svg width="240" height="40" viewBox="0 0 240 40">
+          <path d="M120,32 Q100,20 120,8 Q140,20 120,32 Z" fill={config.colors.primary} opacity="0.9" />
+          <path d="M120,8 Q110,2 120,0 Q130,2 120,8 Z" fill={config.colors.secondary} opacity="0.8" />
+          <circle cx="120" cy="8" r="4" fill={config.colors.secondary} />
+          <path d="M30,16 Q70,12 120,16 Q170,12 210,16" stroke={config.colors.secondary} strokeWidth="1.5" fill="none" />
+        </svg>
+      </motion.div>
+
+      {/* Content */}
+      <motion.div
+        className="relative z-10 flex w-full max-w-xs flex-col items-center px-6 text-center"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <motion.p
+          className="mb-3 text-xs uppercase tracking-[0.25em]"
+          style={{ color: config.colors.primary, fontFamily: config.fonts.body }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          Undangan Pernikahan
+        </motion.p>
+
+        <motion.div
+          className="mb-5 flex items-center gap-2"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="h-px w-8" style={{ background: `linear-gradient(90deg, transparent, ${config.colors.secondary})` }} />
+          <svg width="14" height="14" viewBox="0 0 14 14">
+            <circle cx="7" cy="7" r="4" fill="none" stroke={config.colors.secondary} strokeWidth="1.2" />
+            <circle cx="7" cy="7" r="1.5" fill={config.colors.secondary} />
+          </svg>
+          <div className="h-px w-8" style={{ background: `linear-gradient(90deg, ${config.colors.secondary}, transparent)` }} />
+        </motion.div>
+
+        <motion.h1
+          className="mb-2 font-bold leading-tight tracking-wide"
+          style={{
+            fontSize: "clamp(1.75rem, 7vw, 2.5rem)",
+            color: config.colors.primary,
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          Mempelai Pria
+          <br />
+          <span style={{ fontSize: "clamp(1.25rem, 5vw, 1.75rem)", color: config.colors.secondary }}>&amp;</span>
+          <br />
+          Mempelai Wanita
+        </motion.h1>
+
+        <motion.p
+          className="mb-6 mt-3 text-sm leading-relaxed"
+          style={{ color: config.colors.muted, fontFamily: config.fonts.body }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+        >
+          <em>&ldquo;Marhahom ma rohami, ro do hami tu langkanami&rdquo;</em>
+        </motion.p>
+
+        <motion.div
+          className="mb-8 w-full rounded-xl border px-5 py-3"
+          style={{
+            borderColor: config.colors.secondary,
+            backgroundColor: `${config.colors.surface}CC`,
+          }}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+        >
+          <p className="mb-0.5 text-[10px] uppercase tracking-wider" style={{ color: config.colors.muted }}>
+            Kepada Yth.
+          </p>
+          <p className="text-base font-semibold" style={{ color: config.colors.primary }}>
+            Bapak/Ibu/Saudara/i
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.4 }}
+        >
+          <OpenInvitationButton onClick={onOpen} config={config} />
+        </motion.div>
+
+        <motion.p
+          className="mt-6 text-[10px] uppercase tracking-widest"
+          style={{ color: config.colors.muted, opacity: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ delay: 1.6 }}
+        >
+          Horas
+        </motion.p>
+      </motion.div>
+
+      {/* Gold particles - lightweight */}
+      {[...Array(10)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="pointer-events-none absolute rounded-full"
+          style={{
+            width: 2 + (i % 3),
+            height: 2 + (i % 3),
+            left: `${10 + (i * 9) % 80}%`,
+            top: `${10 + (i * 13) % 80}%`,
+            backgroundColor: config.colors.secondary,
+            opacity: 0.15,
+          }}
+          animate={{ y: [0, -15, 0], opacity: [0.15, 0.3, 0.15] }}
+          transition={{ duration: 8 + (i % 5), repeat: Infinity, delay: i * 0.5 }}
+        />
+      ))}
     </div>
   );
 }

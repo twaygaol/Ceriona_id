@@ -32,24 +32,84 @@ model Invitation {
   id              String    @id @default(cuid())
   slug            String    @unique
   title           String
+  
+  // Basic couple info
   brideName       String
   groomName       String
-  templateId      String
+  brideFullName   String?
+  groomFullName   String?
+  brideNickname   String?
+  groomNickname   String?
+  
+  // Couple photos & details
+  bridePhoto      String?
+  groomPhoto      String?
+  couplePhoto     String?
+  brideDescription String?
+  groomDescription String?
+  brideInstagram  String?
+  groomInstagram  String?
+  
+  // Parents info
+  brideFatherName String?
+  brideMotherName String?
+  groomFatherName String?
+  groomMotherName String?
+  
+  // Cover screen
+  coverTitle      String?
+  coverGuestName  String?
+  coverBackground String?
+  coverPhoto      String?
+  coverQuote      String?
+  
+  // Hero section
+  heroImage       String?
+  heroBackground  String?
+  heroQuote       String?
+  
+  // Countdown
+  countdownTarget DateTime?
+  
+  // Legacy fields (deprecated, will be removed)
   eventDate       DateTime
   eventTime       String
   eventLocation   String
   googleMapsUrl   String?
   story           String?
+  
+  // Music & customization
   musicUrl        String?
+  selectedMusic   String?
+  musicTitle      String?
+  themeCustomization Json?
+  
+  // RSVP settings
+  isRsvpEnabled   Boolean   @default(true)
+  rsvpDeadline    DateTime?
+  maxGuests       Int       @default(1)
+  confirmMessage  String?
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  metaCoverImage  String?
+  
+  // Template & publish
+  templateId      String    // Theme registry key (e.g. "jawa", "batak")
   isPublished     Boolean   @default(false)
   viewCount       Int       @default(0)
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   userId          String
   user            User      @relation(fields: [userId], references: [id])
   
-  template        Template  @relation(fields: [templateId], references: [id])
-  
+  // Relations
+  events          Event[]
+  loveStories     LoveStory[]
+  moments         Moment[]
+  videos          Video[]
   gallery         Gallery[]
   rsvps           RSVP[]
   guests          Guest[]
@@ -65,7 +125,61 @@ model Gallery {
   createdAt     DateTime  @default(now())
   
   invitationId  String
-  invitation    Invitation @relation(fields: [invitationId], references: [id])
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  name          String
+  date          DateTime
+  time          String
+  location      String
+  address       String?
+  googleMapsUrl String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+}
+
+model LoveStory {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  date          String?
+  photo         String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+}
+
+model Moment {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  photo         String?
+  date          String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+}
+
+model Video {
+  id            String    @id @default(cuid())
+  type          String    @default("youtube") // youtube, upload
+  url           String
+  title         String?
+  thumbnail     String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
 }
 
 model RSVP {
@@ -81,7 +195,7 @@ model RSVP {
   createdAt     DateTime  @default(now())
   
   invitationId  String
-  invitation    Invitation @relation(fields: [invitationId], references: [id])
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
 }
 
 model Guest {
@@ -96,7 +210,7 @@ model Guest {
   updatedAt     DateTime  @updatedAt
 
   invitationId  String
-  invitation    Invitation @relation(fields: [invitationId], references: [id])
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
   whatsappLogs  WhatsAppLog[]
 }
 
@@ -140,7 +254,7 @@ model LiveStream {
   updatedAt     DateTime  @updatedAt
 
   invitationId  String
-  invitation    Invitation @relation(fields: [invitationId], references: [id])
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
 }
 
 model BillingOrder {
@@ -241,8 +355,25 @@ model Template {
   updatedAt     DateTime  @updatedAt
   
   // Relasi
-  invitations   Invitation[]
   components    TemplateComponent[]
+}
+
+model Song {
+  id            String    @id @default(cuid())
+  title         String
+  artist        String
+  album         String?
+  genre         String?
+  duration      Int?      // in seconds
+  coverUrl      String?
+  audioUrl      String    @unique
+  provider      String    @default("upload") // upload, youtube, spotify
+  externalId    String?
+  isPremium     Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  usageCount    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model TemplateComponent {

@@ -7,6 +7,7 @@ import { EntranceAnimation } from "./opening/EntranceAnimation";
 import { UlosDecoration } from "./decorations/UlosDecoration";
 import { GorgaDecoration } from "./decorations/GorgaDecoration";
 import { BatakCornerDecoration } from "./decorations/BatakCornerDecoration";
+import { UlosDivider } from "./decorations/UlosDivider";
 import { CoverSection } from "./sections/CoverSection";
 import { HeroSection } from "./sections/HeroSection";
 import { CoupleSection } from "./sections/CoupleSection";
@@ -16,8 +17,11 @@ import { GalleryVariant } from "./sections/GalleryVariant";
 import { GiftVariant } from "./sections/GiftVariant";
 import { RSVPVariant } from "./sections/RSVPVariant";
 import { FooterSection } from "./sections/FooterSection";
+import { MomentSection } from "./sections/MomentSection";
+import { VideoSection } from "./sections/VideoSection";
 import { MainLayout } from "./layouts/MainLayout";
 import { SectionWrapper } from "./layouts/SectionWrapper";
+import { DesktopShowcaseLayout } from "./layouts/DesktopShowcaseLayout";
 
 export { manifest };
 export { themeConfig };
@@ -36,8 +40,11 @@ export { GalleryVariant };
 export { GiftVariant };
 export { RSVPVariant };
 export { FooterSection };
+export { MomentSection };
+export { VideoSection };
 export { MainLayout };
 export { SectionWrapper };
+export { DesktopShowcaseLayout };
 
 export const themeId = "batak" as const;
 
@@ -52,7 +59,9 @@ export const themePackage: ThemePackage = {
   EntranceAnimation,
   MainLayout,
   SectionWrapper,
+  DesktopShowcaseLayout,
   decorations: [UlosDecoration, GorgaDecoration, BatakCornerDecoration],
+  SectionDivider: UlosDivider,
   sections: {
     CoverSection,
     HeroSection,
@@ -63,5 +72,7 @@ export const themePackage: ThemePackage = {
     GiftVariant,
     RSVPVariant,
     FooterSection,
+    MomentSection,
+    VideoSection,
   },
 };

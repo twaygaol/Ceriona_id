@@ -1,49 +1,36 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ThemeRenderer } from "@/features/invitation/renderer/ThemeRenderer";
 
 function PreviewContent() {
-  const searchParams = useSearchParams();
-  const dataParam = searchParams.get("data");
+  const [liveData, setLiveData] = useState<any>(null);
 
-  const { invitation, themeId } = useMemo(() => {
-    if (!dataParam) return { invitation: null, themeId: null };
-    try {
-      const parsed = JSON.parse(decodeURIComponent(dataParam));
-      return {
-        invitation: parsed,
-        themeId: parsed.templateId || parsed.themeId,
-      };
-    } catch {
-      return { invitation: null, themeId: null };
-    }
-  }, [dataParam]);
+  // Listen for postMessage from parent InvitationBuilder
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "preview-update") {
+        setLiveData(event.data.data);
+      }
+    };
+    window.addEventListener("message", handler);
 
-  // Fallback: try sessionStorage (for old landing page preview flow)
-  const sessionData = useMemo(() => {
-    if (invitation && themeId) return { invitation, themeId };
-    
-    if (typeof window === "undefined") return { invitation: null, themeId: null };
-    
+    // Fallback: try sessionStorage
     try {
       const stored = sessionStorage.getItem("preview-data");
-      if (!stored) return { invitation: null, themeId: null };
-      const parsed = JSON.parse(stored);
-      return {
-        invitation: parsed,
-        themeId: parsed.templateId || parsed.themeId,
-      };
-    } catch {
-      return { invitation: null, themeId: null };
-    }
-  }, [invitation, themeId]);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setLiveData(parsed);
+      }
+    } catch {}
 
-  const finalInvitation = invitation || sessionData.invitation;
-  const finalThemeId = themeId || sessionData.themeId;
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
-  if (!finalInvitation || !finalThemeId) {
+  const invitation = liveData;
+  const themeId = liveData?.templateId || liveData?.themeId;
+
+  if (!invitation || !themeId) {
     return (
       <div className="flex min-h-screen items-center justify-center text-gray-500">
         <p>Preview tidak tersedia</p>
@@ -53,7 +40,7 @@ function PreviewContent() {
 
   return (
     <div className="bg-white" suppressHydrationWarning>
-      <ThemeRenderer themeId={finalThemeId} invitation={finalInvitation} />
+      <ThemeRenderer key={themeId} themeId={themeId} invitation={invitation} />
     </div>
   );
 }

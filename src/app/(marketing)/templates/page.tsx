@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getRegistryPresets } from "@/services/themeRegistryAdapter";
 import { ThemeRenderer } from "@/features/invitation/renderer/ThemeRenderer";
 import type { DashboardTemplate, TemplateSection } from "@/types/template";
@@ -76,6 +76,10 @@ export default function TemplatesPage() {
 
       <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => { if (!open) setPreviewKey(null); }}>
         <DialogContent className="max-w-5xl bg-[#0D0D0D] p-0 text-white">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{previewTheme?.label || "Preview Tema"}</DialogTitle>
+            <DialogDescription>Preview tema undangan</DialogDescription>
+          </DialogHeader>
           {previewTheme && (
             <div className="flex h-[90vh] flex-col">
               <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">

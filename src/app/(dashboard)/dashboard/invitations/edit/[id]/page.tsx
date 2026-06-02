@@ -4,37 +4,46 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { VisualBuilder, type EditableInvitation } from "@/features/dashboard/invitations/VisualBuilder";
+import { InvitationBuilder } from "@/features/dashboard/invitations/InvitationBuilder";
 
 export default function EditInvitationPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams();
   const router = useRouter();
-  const [invitation, setInvitation] = useState<EditableInvitation | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [invitationId, setInvitationId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadInvitation() {
       try {
-        const { data } = await axios.get<EditableInvitation>(`/api/invitations/${params.id}`);
-        setInvitation(data);
-      } catch {
+        const id = params.id as string;
+        const { data } = await axios.get(`/api/invitations/${id}`);
+        setInvitationId(data.id);
+      } catch (error) {
         toast.error("Gagal memuat undangan");
         router.push("/dashboard/invitations");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
 
     loadInvitation();
   }, [params.id, router]);
 
-  if (isLoading) {
-    return <div className="py-20 text-center text-brown-light">Memuat undangan...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-brown border-t-transparent" />
+          <p className="text-brown-light">Memuat undangan...</p>
+        </div>
+      </div>
+    );
   }
 
-  return invitation ? (
-    <div className="-m-6 md:-m-8" style={{ height: "calc(100vh - 4rem)" }}>
-      <VisualBuilder mode="edit" initialInvitation={invitation} />
-    </div>
-  ) : null;
+  if (!invitationId) {
+    return null;
+  }
+
+  return <InvitationBuilder mode="edit" invitationId={invitationId} />;
 }
+

@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import type { GiftVariantProps } from "../../../types";
 
-export function GiftVariant({ config, colors, fonts, banks, onCopy }: GiftVariantProps) {
+export function GiftVariant({ config, colors, fonts, banks, onCopy }: any) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (text: string, id: string) => {
@@ -15,81 +14,79 @@ export function GiftVariant({ config, colors, fonts, banks, onCopy }: GiftVarian
 
   return (
     <section
-      className="relative w-full py-20 px-6"
-      style={{ background: colors.background, fontFamily: fonts.heading }}
+      className="relative w-full px-5 py-20"
+      style={{ background: `linear-gradient(180deg, ${colors.background}, ${colors.surface})`, fontFamily: fonts.heading }}
     >
-      <div className="max-w-3xl mx-auto">
+      <div className="mx-auto max-w-3xl">
+        {/* Title */}
         <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 30 }}
+          className="mb-16 text-center"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          {/* Amplop decorative icon */}
-          <div className="flex justify-center mb-4">
-            <svg width="48" height="36" viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="4" width="44" height="30" rx="2" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-              <path d="M2 4L24 20L46 4" stroke={colors.accent} strokeWidth="1.5" fill="none" />
+          <div className="mb-4 flex justify-center">
+            <svg width="48" height="36" viewBox="0 0 48 36" fill="none">
+              <rect x="2" y="3" width="44" height="30" rx="2" stroke={colors.accent} strokeWidth="2" fill="none" />
+              <path d="M2 3L24 20L46 3" stroke={colors.accent} strokeWidth="2" fill="none" />
+              <circle cx="24" cy="20" r="4" fill={colors.accent} opacity="0.15" />
             </svg>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: colors.text }}>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: colors.text }}>
             Amplop Digital
           </h2>
-          <div className="w-16 h-0.5 mx-auto" style={{ background: colors.accent }} />
-          <p className="text-sm mt-4 max-w-md mx-auto" style={{ color: colors.muted, fontFamily: fonts.body }}>
-            Molo denggan basa ni rohami, boi do hamu mangalehon tanda holong tu hami
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent})` }} />
+            <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0L8 4L4 8L0 4Z" fill={colors.accent} /></svg>
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, ${colors.accent}, transparent)` }} />
+          </div>
+          <p className="mx-auto mt-4 max-w-md text-sm italic leading-relaxed" style={{ color: colors.muted, fontFamily: fonts.quote }}>
+            &ldquo;Molo denggan basa ni rohami, boi do hamu mangalehon tanda holong tu hami&rdquo;
           </p>
         </motion.div>
 
+        {/* Bank cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(banks || []).map((bank, idx) => (
+          {(banks || []).map((bank: any, idx: number) => (
             <motion.div
               key={bank.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="p-6 text-center relative"
+              transition={{ duration: 0.35, delay: idx * 0.08 }}
+              className="rounded-2xl border p-8 text-center"
               style={{
-                border: `1.5px solid ${colors.accent}44`,
-                borderRadius: config.layout.borderRadius,
+                borderColor: `${colors.accent}44`,
                 background: colors.surface,
               }}
             >
-              {/* Ulos pattern decorative border */}
-              <div className="flex justify-center gap-0.5 mb-3">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-2 h-2" style={{ border: `1px solid ${colors.accent}44`, transform: "rotate(45deg)" }} />
-                ))}
-              </div>
               {bank.logo && (
-                <img src={bank.logo} alt={bank.bank} className="h-8 mx-auto mb-3 object-contain" />
+                <img src={bank.logo} alt={bank.bank} className="mx-auto mb-3 h-8 object-contain" />
               )}
-              <p className="text-sm tracking-wider mb-1" style={{ color: colors.accent, fontFamily: fonts.body }}>
+              <p className="mb-2 text-base tracking-wider font-medium" style={{ color: colors.accent, fontFamily: fonts.body }}>
                 {bank.bank}
               </p>
-              <p className="text-lg font-bold tracking-wider mb-1" style={{ color: colors.text }}>
+              <p className="mb-2 text-xl font-bold tracking-wider" style={{ color: colors.text }}>
                 {bank.accountNumber}
               </p>
-              <p className="text-sm mb-4" style={{ color: colors.muted, fontFamily: fonts.body }}>
+              <p className="mb-6 text-sm" style={{ color: colors.muted, fontFamily: fonts.body }}>
                 a.n. {bank.accountName}
               </p>
-              <motion.button
+
+              {/* Copy button */}
+              <button
                 onClick={() => handleCopy(bank.accountNumber, bank.id)}
-                className="px-5 py-2 text-xs tracking-wider cursor-pointer"
+                className="inline-flex h-12 w-full items-center justify-center rounded-xl text-sm font-medium tracking-wider active:scale-[0.97] transition-transform duration-100"
                 style={{
                   color: copiedId === bank.id ? colors.background : colors.accent,
                   background: copiedId === bank.id ? colors.accent : "transparent",
-                  border: `1px solid ${colors.accent}`,
-                  borderRadius: config.layout.borderRadius,
+                  border: `2px solid ${colors.accent}`,
                   fontFamily: fonts.body,
                 }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
               >
-                {copiedId === bank.id ? "Tersalin!" : "Salin Nomor"}
-              </motion.button>
+                {copiedId === bank.id ? "Tersalin!" : "Salin Nomor Rekening"}
+              </button>
             </motion.div>
           ))}
         </div>

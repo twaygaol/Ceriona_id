@@ -1,12 +1,12 @@
 "use client";
 
 import { Suspense } from "react";
-import { VisualBuilder } from "@/features/dashboard/invitations/VisualBuilder";
+import { InvitationBuilder } from "@/features/dashboard/invitations/InvitationBuilder";
 
 export default function CreateInvitationPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center text-slate-500">Memuat editor...</div>}>
-      <VisualBuilder mode="create" />
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Memuat...</div>}>
+      <InvitationBuilder mode="create" />
     </Suspense>
   );
 }

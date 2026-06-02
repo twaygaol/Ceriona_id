@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import type { RSVPVariantProps } from "../../../types";
 
-export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProps) {
+export function RSVPVariant({ config, colors, fonts, onSubmit }: any) {
   const [name, setName] = useState("");
   const [attendance, setAttendance] = useState<"hadir" | "tidak hadir" | "ragu">("hadir");
   const [guestCount, setGuestCount] = useState(1);
@@ -19,7 +18,6 @@ export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProp
       await onSubmit({ id: "", name, attendance, guestCount, message });
       setSuccess(true);
     } catch {
-      // error handled by parent
     } finally {
       setLoading(false);
     }
@@ -27,22 +25,26 @@ export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProp
 
   if (success) {
     return (
-      <section className="w-full py-20 px-6" style={{ background: colors.surface, fontFamily: fonts.heading }}>
-        <div className="max-w-lg mx-auto text-center">
+      <section className="w-full px-5 py-24" style={{ background: colors.surface, fontFamily: fonts.heading }}>
+        <div className="mx-auto max-w-md text-center">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", duration: 0.6 }}
-            className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-            style={{ background: colors.accent }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
+            style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={colors.background} strokeWidth="2.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={colors.background} strokeWidth="2.5">
               <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </motion.div>
-          <h3 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>Mauliate!</h3>
-          <p className="text-sm" style={{ color: colors.muted, fontFamily: fonts.body }}>
-            Terima kasih, konfirmasi kehadiran Anda telah kami terima
+          <h3 className="mb-3 text-3xl font-bold" style={{ color: colors.text }}>Mauliate!</h3>
+          <div className="mx-auto mb-5 h-px w-16" style={{ background: colors.accent }} />
+          <p className="mb-4 text-base leading-relaxed" style={{ color: colors.muted, fontFamily: fonts.body }}>
+            Terima kasih, konfirmasi kehadiran Anda telah kami terima. Tuhan memberkati.
+          </p>
+          <p className="text-sm italic" style={{ color: colors.accent, fontFamily: fonts.quote }}>
+            &ldquo;Sai horas ma di hamu&rdquo;
           </p>
         </div>
       </section>
@@ -51,68 +53,78 @@ export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProp
 
   return (
     <section
-      className="relative w-full py-20 px-6"
+      className="relative w-full px-5 py-20"
       style={{ background: colors.surface, fontFamily: fonts.heading }}
     >
-      <div className="max-w-lg mx-auto">
+      <div className="mx-auto max-w-2xl">
+        {/* Title */}
         <motion.div
-          className="text-center mb-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: colors.text }}>
-            Konfirmasi Hadir
-          </h2>
-          <div className="w-16 h-0.5 mx-auto" style={{ background: colors.accent }} />
-        </motion.div>
-
-        <motion.form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-          initial={{ opacity: 0, y: 20 }}
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+          <p className="mb-2 text-xs uppercase tracking-[0.35em]" style={{ color: colors.accent, fontFamily: fonts.body }}>
+            Surat Tona
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: colors.text }}>
+            Konfirmasi Hadir
+          </h2>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent})` }} />
+            <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0L8 4L4 8L0 4Z" fill={colors.accent} /></svg>
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, ${colors.accent}, transparent)` }} />
+          </div>
+        </motion.div>
+
+        <motion.form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Nama */}
           <div>
-            <label className="block text-xs tracking-wider mb-1.5" style={{ color: colors.text, fontFamily: fonts.body }}>
-              Nama Lengkap
+            <label className="mb-2 block text-sm tracking-wider font-medium" style={{ color: colors.text, fontFamily: fonts.body }}>
+              Goar / Nama Lengkap
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-3 text-sm outline-none transition-colors"
+              className="h-12 w-full rounded-xl px-4 text-base outline-none"
               style={{
                 color: colors.text,
                 background: colors.background,
-                border: `1.5px solid ${colors.primary}66`,
-                borderRadius: config.layout.borderRadius,
+                border: `2px solid ${colors.primary}55`,
                 fontFamily: fonts.body,
               }}
-              placeholder="Masukkan nama Anda"
+              placeholder="Masukkan goar / nama Anda"
             />
           </div>
 
+          {/* Kehadiran */}
           <div>
-            <label className="block text-xs tracking-wider mb-1.5" style={{ color: colors.text, fontFamily: fonts.body }}>
-              Kehadiran
+            <label className="mb-2 block text-sm tracking-wider font-medium" style={{ color: colors.text, fontFamily: fonts.body }}>
+              Haroroan / Kehadiran
             </label>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {(["hadir", "tidak hadir", "ragu"] as const).map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setAttendance(opt)}
-                  className="flex-1 py-2.5 text-xs tracking-wider transition-all cursor-pointer"
+                  className="h-12 rounded-xl text-sm font-medium tracking-wider active:scale-[0.97] transition-transform duration-100"
                   style={{
-                    color: attendance === opt ? colors.text : colors.muted,
-                    background: attendance === opt ? colors.accent : colors.background,
-                    border: `1.5px solid ${attendance === opt ? colors.accent : colors.primary}44`,
-                    borderRadius: config.layout.borderRadius,
+                    color: attendance === opt ? colors.background : colors.muted,
+                    background: attendance === opt
+                      ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
+                      : colors.background,
+                    border: `2px solid ${attendance === opt ? colors.accent : colors.primary}44`,
                     fontFamily: fonts.body,
                   }}
                 >
@@ -122,8 +134,9 @@ export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProp
             </div>
           </div>
 
+          {/* Jumlah Tamu */}
           <div>
-            <label className="block text-xs tracking-wider mb-1.5" style={{ color: colors.text, fontFamily: fonts.body }}>
+            <label className="mb-2 block text-sm tracking-wider font-medium" style={{ color: colors.text, fontFamily: fonts.body }}>
               Jumlah Tamu
             </label>
             <input
@@ -132,53 +145,50 @@ export function RSVPVariant({ config, colors, fonts, onSubmit }: RSVPVariantProp
               max={10}
               value={guestCount}
               onChange={(e) => setGuestCount(Number(e.target.value))}
-              className="w-full px-4 py-3 text-sm outline-none transition-colors"
+              className="h-12 w-full rounded-xl px-4 text-base outline-none"
               style={{
                 color: colors.text,
                 background: colors.background,
-                border: `1.5px solid ${colors.primary}66`,
-                borderRadius: config.layout.borderRadius,
+                border: `2px solid ${colors.primary}55`,
                 fontFamily: fonts.body,
               }}
             />
           </div>
 
+          {/* Pesan */}
           <div>
-            <label className="block text-xs tracking-wider mb-1.5" style={{ color: colors.text, fontFamily: fonts.body }}>
-              Pesan (opsional)
+            <label className="mb-2 block text-sm tracking-wider font-medium" style={{ color: colors.text, fontFamily: fonts.body }}>
+              Hata / Pesan <span className="opacity-50">(tinting)</span>
             </label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 text-sm outline-none resize-none transition-colors"
+              rows={4}
+              className="w-full rounded-xl px-4 py-3 text-base outline-none resize-none"
               style={{
                 color: colors.text,
                 background: colors.background,
-                border: `1.5px solid ${colors.primary}66`,
-                borderRadius: config.layout.borderRadius,
+                border: `2px solid ${colors.primary}55`,
                 fontFamily: fonts.body,
               }}
-              placeholder="Tulis pesan untuk mempelai..."
+              placeholder="Tulis hata / pesan untuk mempelai..."
             />
           </div>
 
-          <motion.button
+          {/* Submit */}
+          <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 text-sm tracking-wider cursor-pointer disabled:opacity-60"
+            className="h-14 w-full rounded-xl text-base font-medium tracking-wider active:scale-[0.97] transition-transform duration-100 disabled:opacity-60"
             style={{
               color: colors.text,
               background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-              border: `1.5px solid ${colors.accent}`,
-              borderRadius: config.layout.borderRadius,
+              border: `2px solid ${colors.accent}`,
               fontFamily: fonts.body,
             }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
-            {loading ? "Mengirim..." : "Kirim Konfirmasi"}
-          </motion.button>
+            {loading ? "Mengirim..." : "Kirim Surat Tona"}
+          </button>
         </motion.form>
       </div>
     </section>

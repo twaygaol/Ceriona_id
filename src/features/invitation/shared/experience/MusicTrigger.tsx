@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useMusic } from "../../core/music";
 import type { MusicTriggerProps } from "../../types";
 
-export function MusicTrigger({ theme, autoPlay }: MusicTriggerProps) {
-  const track = theme.config.music.defaultTrack;
+export function MusicTrigger({ theme, autoPlay, trackUrl }: MusicTriggerProps & { trackUrl?: string }) {
+  const defaultTrack = theme.config.music.defaultTrack;
+  const track = trackUrl || defaultTrack;
   const { toggle } = useMusic(track);
 
   useEffect(() => {

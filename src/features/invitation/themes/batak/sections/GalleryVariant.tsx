@@ -1,83 +1,68 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { GalleryVariantProps } from "../../../types";
 
-export function GalleryVariant({ config, colors, fonts, items, onImageClick }: GalleryVariantProps) {
+export function GalleryVariant({ config, colors, fonts, items, onImageClick }: any) {
   return (
     <section
-      className="relative w-full py-20 px-6"
+      className="relative w-full px-5 py-20"
       style={{ background: colors.surface, fontFamily: fonts.heading }}
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto max-w-6xl">
+        {/* Title */}
         <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 30 }}
+          className="mb-16 text-center"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: colors.text }}>
+          <p className="mb-2 text-xs uppercase tracking-[0.35em]" style={{ color: colors.accent, fontFamily: fonts.body }}>
+            Pameran Gombungi
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: colors.text }}>
             Galeri Foto
           </h2>
-          <div className="w-16 h-0.5 mx-auto" style={{ background: colors.accent }} />
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, transparent, ${colors.accent})` }} />
+            <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0L8 4L4 8L0 4Z" fill={colors.accent} /></svg>
+            <div className="h-px w-12" style={{ background: `linear-gradient(90deg, ${colors.accent}, transparent)` }} />
+          </div>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {(items || []).map((item, idx) => (
+        {/* Grid: 2 columns mobile, 3 columns tablet, 4 columns desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {(items || []).map((item: any, idx: number) => (
             <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
+              key={item.id || idx}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.08 }}
-              className="relative group cursor-pointer"
-              onClick={() => onImageClick?.(item)}
+              transition={{ duration: 0.35, delay: Math.min(idx * 0.05, 0.3) }}
+              className="overflow-hidden rounded-xl active:scale-95 transition-transform duration-150"
               style={{
                 border: `3px solid ${colors.primary}`,
-                borderRadius: config.layout.borderRadius,
-                overflow: "hidden",
               }}
+              onClick={() => onImageClick?.(item)}
             >
-              {/* Ulos-pattern frame overlay */}
-              <div className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                {/* Corner rhombus decorations */}
-                <svg className="absolute top-1 left-1 w-8 h-8" viewBox="0 0 30 30" fill="none">
-                  <path d="M15 3 L24 15 L15 27 L6 15 Z" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-                  <line x1="15" y1="3" x2="15" y2="27" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                  <line x1="6" y1="15" x2="24" y2="15" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                </svg>
-                <svg className="absolute top-1 right-1 w-8 h-8 scale-x-[-1]" viewBox="0 0 30 30" fill="none">
-                  <path d="M15 3 L24 15 L15 27 L6 15 Z" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-                  <line x1="15" y1="3" x2="15" y2="27" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                  <line x1="6" y1="15" x2="24" y2="15" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                </svg>
-                <svg className="absolute bottom-1 left-1 w-8 h-8 scale-y-[-1]" viewBox="0 0 30 30" fill="none">
-                  <path d="M15 3 L24 15 L15 27 L6 15 Z" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-                  <line x1="15" y1="3" x2="15" y2="27" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                  <line x1="6" y1="15" x2="24" y2="15" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                </svg>
-                <svg className="absolute bottom-1 right-1 w-8 h-8 scale-[-1]" viewBox="0 0 30 30" fill="none">
-                  <path d="M15 3 L24 15 L15 27 L6 15 Z" stroke={colors.accent} strokeWidth="1.5" fill="none" />
-                  <line x1="15" y1="3" x2="15" y2="27" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                  <line x1="6" y1="15" x2="24" y2="15" stroke={colors.accent} strokeWidth="0.5" opacity="0.5" />
-                </svg>
-              </div>
-
               <img
                 src={item.thumbnail || item.url}
-                alt={item.caption || "Gallery image"}
-                className="w-full aspect-square object-cover transition-transform duration-300 group-hover:scale-105"
+                alt={item.caption || ""}
+                className="aspect-square w-full object-cover"
+                loading="lazy"
               />
 
-              {/* Dark overlay on hover */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                {item.caption && (
-                  <p className="text-sm text-center px-4" style={{ color: colors.accent, fontFamily: fonts.body }}>
+              {/* Caption overlay */}
+              {item.caption && (
+                <div
+                  className="px-3 py-2 text-center"
+                  style={{ background: colors.primary }}
+                >
+                  <span className="text-xs leading-tight" style={{ color: colors.accent, fontFamily: fonts.body }}>
                     {item.caption}
-                  </p>
-                )}
-              </div>
+                  </span>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

@@ -227,6 +227,10 @@ export default function HomePage() {
       {/* Preview Dialog */}
       <Dialog open={Boolean(previewTheme)} onOpenChange={(open) => { if (!open) setPreviewThemeKey(null); }}>
         <DialogContent className="max-w-5xl bg-[#0D0D0D] p-0 text-white">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{previewTheme?.label || "Preview Tema"}</DialogTitle>
+            <DialogDescription>Preview tema undangan</DialogDescription>
+          </DialogHeader>
           {previewTheme && (
             <div className="flex h-[90vh] flex-col">
               <div className="flex items-center justify-between border-b border-white/10 bg-black/60 px-4 py-2">
@@ -355,28 +359,26 @@ export default function HomePage() {
                       {themes.slice(0, 6).map((theme) => (
                         <div
                           key={theme.key}
-                          onClick={() => setForm((current) => ({ ...current, themeKey: theme.key }))}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setForm((current) => ({ ...current, themeKey: theme.key }));
-                            }
-                          }}
-                          className={`cursor-pointer overflow-hidden rounded-[1.3rem] border bg-white text-left transition ${
+                          className={`overflow-hidden rounded-[1.3rem] border bg-white text-left transition ${
                             form.themeKey === theme.key
                               ? "border-brown ring-2 ring-brown/15"
                               : "border-gold/15 hover:border-gold/40"
                           }`}
                         >
-                          <div className="h-24 p-3" style={{ background: theme.preview, color: theme.values.textColor }}>
+                          <div 
+                            className="h-24 p-3 cursor-pointer" 
+                            style={{ background: theme.preview, color: theme.values.textColor }}
+                            onClick={() => setForm((current) => ({ ...current, themeKey: theme.key }))}
+                          >
                             <div className="flex h-full items-end rounded-xl border border-white/15 bg-white/10 p-2.5 text-xs font-medium backdrop-blur-sm">
                               {theme.label}
                             </div>
                           </div>
                           <div className="flex items-center justify-between p-3">
-                            <div>
+                            <div 
+                              className="cursor-pointer flex-1"
+                              onClick={() => setForm((current) => ({ ...current, themeKey: theme.key }))}
+                            >
                               <p className="text-xs font-medium text-brown">{theme.label}</p>
                               <p className="text-[10px] capitalize text-brown-light">{theme.values.category}</p>
                             </div>
